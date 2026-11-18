@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+
+# Generated simulation outputs and datasets
+outputs/
+*.h5
+*.hdf5
+*.npy
+*.db3
+*.mcap
+*.log
+
+# Local imported assets are not tracked until their redistribution license is confirmed
+assets/
+
+# Editor and OS files
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini

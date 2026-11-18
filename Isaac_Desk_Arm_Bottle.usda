@@ -1,0 +1,907 @@
+#usda 1.0
+(
+    customLayerData = {
+        dictionary cameraSettings = {
+            dictionary Front = {
+                double3 position = (5, 0, 0)
+                double radius = 5
+            }
+            dictionary Perspective = {
+                double3 position = (1.4000000000000004, -1.7, 1.5000000000000002)
+                double3 target = (0.19352701041362352, 0.14517568126541525, 0.9086036602537884)
+            }
+            dictionary Right = {
+                double3 position = (0, -5, 0)
+                double radius = 5
+            }
+            dictionary Top = {
+                double3 position = (0, 0, 5)
+                double radius = 5
+            }
+            string boundCamera = "/OmniverseKit_Top"
+        }
+        dictionary omni_layer = {
+            string authoring_layer = "./Isaac_Desk_Arm_Bottle.usda"
+        }
+        dictionary renderSettings = {
+        }
+    }
+    endTimeCode = 1000000
+    metersPerUnit = 1
+    startTimeCode = 0
+    timeCodesPerSecond = 60
+    upAxis = "Z"
+)
+
+over Camera "OmniverseKit_Persp" (
+    prepend apiSchemas = ["OmniRtxCameraAutoExposureAPI_1", "OmniRtxCameraExposureAPI_1"]
+    customData = {
+        dictionary omni = {
+            dictionary kit = {
+                bool hide_in_stage_window = 1
+                bool no_delete = 1
+            }
+        }
+    }
+    hide_in_stage_window = true
+    kind = "component"
+    no_delete = true
+)
+{
+    float2 clippingRange = (0.01, 10000000)
+    float exposure:fStop = 5
+    float exposure:responsivity = 1.1026709
+    float exposure:time = 0.02
+    float focalLength = 18.147562
+    float focusDistance = 400
+    custom uniform vector3d omni:kit:centerOfInterest = (-1.5959455978986625e-16, -2.220446049250313e-16, -1.1211155159036914)
+    float3 xformOp:rotateXYZ = (74.983604, -6.3611094e-15, 33.178772)
+    float3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (1.4000000000000004, -1.7, 1.5000000000000002)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+}
+
+over Camera "OmniverseKit_Front" (
+    customData = {
+        dictionary omni = {
+            dictionary kit = {
+                bool hide_in_stage_window = 1
+                bool no_delete = 1
+            }
+        }
+    }
+    hide_in_stage_window = true
+    kind = "component"
+    no_delete = true
+)
+{
+    float2 clippingRange = (1, 10000000)
+    float horizontalAperture = 50
+    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -5)
+    token projection = "orthographic"
+    float verticalAperture = 50
+    float3 xformOp:rotateXYZ = (90, -1.2722219e-14, 90)
+    float3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (5, 0, 0)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+}
+
+over Camera "OmniverseKit_Top" (
+    customData = {
+        dictionary omni = {
+            dictionary kit = {
+                bool hide_in_stage_window = 1
+                bool no_delete = 1
+            }
+        }
+    }
+    hide_in_stage_window = true
+    kind = "component"
+    no_delete = true
+)
+{
+    float2 clippingRange = (1, 10000000)
+    float exposure:fStop = 5
+    float exposure:responsivity = 1.1026709
+    float exposure:time = 0.02
+    float horizontalAperture = 50
+    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -5)
+    token projection = "orthographic"
+    float verticalAperture = 50
+    float3 xformOp:rotateXYZ = (1.2722219e-14, -7.016709e-15, -90)
+    float3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (0, 0, 5)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+}
+
+over Camera "OmniverseKit_Right" (
+    customData = {
+        dictionary omni = {
+            dictionary kit = {
+                bool hide_in_stage_window = 1
+                bool no_delete = 1
+            }
+        }
+    }
+    hide_in_stage_window = true
+    kind = "component"
+    no_delete = true
+)
+{
+    float2 clippingRange = (1, 10000000)
+    float horizontalAperture = 50
+    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -5)
+    token projection = "orthographic"
+    float verticalAperture = 50
+    float3 xformOp:rotateXYZ = (90, 7.06225e-31, -1.2722219e-14)
+    float3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (0, -5, 0)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+}
+
+def "Render" (
+    hide_in_stage_window = true
+    no_delete = true
+)
+{
+    def "OmniverseKit"
+    {
+        def "HydraTextures" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            def RenderProduct "omni_kit_widget_viewport_ViewportTexture_0" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1", "OmniRtxSettingsParticleFieldAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </OmniverseKit_Persp>
+                token omni:rtx:ambientOcclusion:denoiserMode = "none"
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                bool omni:rtx:debug:view:pixelDebug:enableFixedTextPos = 1
+                token omni:rtx:directLighting:sampledLighting:denoisingTechnique = "None"
+                bool omni:rtx:dlss:frameGeneration = 0
+                bool omni:rtx:indirectDiffuse:denoiser:enabled = 0
+                string[] omni:rtx:material:db:flattener:ior_constant = ["ior_constant", "glass_ior"]
+                string[] omni:rtx:material:db:flattener:reflection_roughness_constant = ["reflection_roughness_constant", "frosting_roughness"]
+                string[] omni:rtx:material:db:flattener:transmittance_color = ["transmittance_color", "glass_color"]
+                bool omni:rtx:material:db:nonVisualMaterialCSV:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:dlss:execMode = "performance"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                bool omni:rtx:pt:adaptiveSampling:filterError = 0
+                uint omni:rtx:pt:adaptiveSampling:fixedSppIterations = 2
+                bool omni:rtx:pt:lightcache:cached:dontResolveConflicts = 1
+                int omni:rtx:pt:maxSamplesPerLaunch = 2073600
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                bool omni:rtx:raytracing:picking:occluded:enabled = 0
+                bool omni:rtx:reflections:denoiser:enabled = 0
+                token omni:rtx:rendermode = "RealTimePathTracing"
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                bool omni:rtx:rt:demoire = 0
+                bool omni:rtx:rt:ecoMode:enabled = 0
+                int omni:rtx:rt:iesTextureRes = 1024
+                bool omni:rtx:rt:indexdirect:enabled = 1
+                token omni:rtx:rt:indexdirect:NanoVDBCompression = "None"
+                bool omni:rtx:rt:indexdirect:NanoVDBCompressionDither = 1
+                bool omni:rtx:rt:indexdirect:showDetailledMemoryInfo = 0
+                int omni:rtx:rt:indexdirect:svo:brickBorder = 0
+                int3 omni:rtx:rt:indexdirect:svo:brickSize = (32, 32, 32)
+                token omni:rtx:rt:indexdirect:volumeType = "IndeXSVO"
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                int omni:rtx:rt:sss:samples = 1
+                uint omni:rtx:rtpt:maxVolumeBounces = 15
+                float omni:rtx:rtpt:modulatingRoughnessThreshold = 0.08
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                uint omni:rtx:viewTile:limit = 4294967295
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+                custom uint64 viewPickingId = 1766579638465691780
+                custom int viewportHandle = 0
+            }
+
+            def RenderProduct "omni_kit_widget_viewport_ViewportTexture_1" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxSettingsParticleFieldAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </World/Franka/panda_hand/WristCamera>
+                token omni:rtx:ambientOcclusion:denoiserMode = "none"
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                bool omni:rtx:debug:view:pixelDebug:enableFixedTextPos = 1
+                token omni:rtx:directLighting:sampledLighting:denoisingTechnique = "None"
+                bool omni:rtx:dlss:frameGeneration = 0
+                bool omni:rtx:indirectDiffuse:denoiser:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:dlss:execMode = "performance"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                bool omni:rtx:pt:adaptiveSampling:filterError = 0
+                uint omni:rtx:pt:adaptiveSampling:fixedSppIterations = 2
+                uint omni:rtx:pt:maxSamplesPerLaunch = 2073600
+                uint omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                bool omni:rtx:reflections:denoiser:enabled = 0
+                token omni:rtx:rendermode = "RealTimePathTracing"
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                bool omni:rtx:rt:demoire = 0
+                bool omni:rtx:rt:ecoMode:enabled = 0
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                int omni:rtx:rt:sss:samples = 1
+                uint omni:rtx:rtpt:maxVolumeBounces = 15
+                float omni:rtx:rtpt:modulatingRoughnessThreshold = 0.08
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "camera_sensor_164734785168" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxSettingsParticleFieldAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </World/Franka/panda_hand/WristCamera>
+                token omni:rtx:ambientOcclusion:denoiserMode = "none"
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                bool omni:rtx:debug:view:pixelDebug:enableFixedTextPos = 1
+                token omni:rtx:directLighting:sampledLighting:denoisingTechnique = "None"
+                bool omni:rtx:dlss:frameGeneration = 0
+                bool omni:rtx:indirectDiffuse:denoiser:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:dlss:execMode = "performance"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                bool omni:rtx:pt:adaptiveSampling:filterError = 0
+                uint omni:rtx:pt:adaptiveSampling:fixedSppIterations = 2
+                uint omni:rtx:pt:maxSamplesPerLaunch = 2073600
+                uint omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                bool omni:rtx:reflections:denoiser:enabled = 0
+                token omni:rtx:rendermode = "RealTimePathTracing"
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                bool omni:rtx:rt:demoire = 0
+                bool omni:rtx:rt:ecoMode:enabled = 0
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                int omni:rtx:rt:sss:samples = 1
+                uint omni:rtx:rtpt:maxVolumeBounces = 15
+                float omni:rtx:rtpt:modulatingRoughnessThreshold = 0.08
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+        }
+    }
+
+    def RenderSettings "OmniverseGlobalRenderSettings" (
+        prepend apiSchemas = ["OmniRtxSettingsGlobalRtAdvancedAPI_1", "OmniRtxSettingsGlobalPtAdvancedAPI_1"]
+        no_delete = true
+    )
+    {
+        rel products = [
+            </Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_0>,
+            </Render/OmniverseKit/HydraTextures/camera_sensor_165018327729>,
+            </Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_1>,
+            </Render/OmniverseKit/HydraTextures/Replicator>,
+            </Render/OmniverseKit/HydraTextures/camera_sensor_164917985164>,
+            </Render/OmniverseKit/HydraTextures/camera_sensor_164731027427>,
+            </Render/OmniverseKit/HydraTextures/camera_sensor_164734785168>,
+        ]
+    }
+
+    def "Vars"
+    {
+        def RenderVar "LdrColor" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            uniform string sourceName = "LdrColor"
+        }
+    }
+}
+
+def "World"
+{
+    def Xform "PracticeBottle"
+    {
+        float xformOp:rotateX = -90
+        float xformOp:rotateY = 0
+        float xformOp:rotateZ = 0
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.18000049114226196, -0.20000024080275952, 0.8476509950238988)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateX"]
+
+        def "Body" (
+            prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+            prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned_Physics/006_mustard_bottle.usd@
+        )
+        {
+            vector3f physics:angularVelocity = (0, 0, 0)
+            vector3f physics:velocity = (0, 0, -0.081750005)
+            float physxContactReport:threshold = 0
+            float physxRigidBody:sleepThreshold = 0
+            quatf xformOp:orient = (1, 2.1068606e-8, -4.3147843e-11, 4.4850004e-10)
+            float3 xformOp:rotateZYX = (0.003083161, -0.00024086704, 0.004796252)
+            float3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0.000010145249689230695, 0.0008021495305001736, 0.0000012942335843035835)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+            over "_06_mustard_bottle" (
+                prepend apiSchemas = ["SemanticsAPI:Semantics"]
+            )
+            {
+                string semantic:Semantics:params:semanticData = "bottle"
+                string semantic:Semantics:params:semanticType = "class"
+            }
+        }
+    }
+
+    def Xform "Franka" (
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Robots/FrankaRobotics/FrankaPanda/franka.usd@
+    )
+    {
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:translate = (-0.41999998688697815, 0, 0.75)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "panda_hand" (
+            prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        )
+        {
+            string isaac:nameOverride (
+                displayName = "Name Override"
+            )
+            vector3f physics:angularVelocity = (-0.0010256489, 0.29085377, -0.0027107173)
+            vector3f physics:velocity = (-0.00523613, -0.000056057495, -0.007476212)
+            float physxRigidBody:sleepThreshold = 0
+            quatf xformOp:orient = (0.00629546, 0.92108166, 0.025987128, 0.3884503)
+            float3 xformOp:translate = (0.39034337, 0.00468298, 0.45970404)
+
+            over "geometry" (
+                instanceable = false
+            )
+            {
+            }
+
+            over "panda_finger_joint1"
+            {
+                float state:linear:physics:position = 1.0460778e-8
+                float state:linear:physics:velocity = -4.551277e-7
+            }
+
+            over "panda_finger_joint2"
+            {
+                float state:linear:physics:position = 1.0682986e-8
+                float state:linear:physics:velocity = -4.551277e-7
+            }
+
+            def Camera "WristCamera" (
+                prepend apiSchemas = ["OmniRtxCameraAutoExposureAPI_1", "OmniRtxCameraExposureAPI_1", "OmniSensorAPI"]
+            )
+            {
+                float2 clippingRange = (0.01, 10000000)
+                float exposure:fStop = 5
+                float exposure:responsivity = 1.1026709
+                float exposure:time = 0.02
+                float focalLength = 18.147562
+                float focusDistance = 400
+                custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -205.8837506499713)
+                float verticalAperture = 11.787188
+                quatd xformOp:orient = (0.30100499349154614, 0.3081457998655134, 0.8914950132271426, -0.14028115094172222)
+                double3 xformOp:scale = (1, 1.0000000000000007, 1.0000000000000009)
+                double3 xformOp:translate = (0.08010309934616089, 0.000004585832357406616, 0.0399630069732666)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+            }
+        }
+
+        over "panda_leftfinger" (
+            prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+        )
+        {
+            vector3f physics:angularVelocity = (-0.0010256489, 0.29085377, -0.0027107173)
+            vector3f physics:velocity = (-0.005443084, -0.00005831096, -0.007688489)
+            float physxContactReport:threshold = 0
+            float physxRigidBody:sleepThreshold = 0
+            quatf xformOp:orient = (0.006295469, 0.92108166, 0.02598715, 0.3884503)
+            float3 xformOp:translate = (0.43215284, 0.005184751, 0.41893303)
+
+            over "geometry" (
+                instanceable = false
+            )
+            {
+            }
+        }
+
+        over "panda_rightfinger" (
+            prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+        )
+        {
+            vector3f physics:angularVelocity = (-0.0010256489, 0.29085377, -0.0027107173)
+            vector3f physics:velocity = (-0.005443047, -0.000059219914, -0.0076884553)
+            float physxContactReport:threshold = 0
+            float physxRigidBody:sleepThreshold = 0
+            quatf xformOp:orient = (0.00629545, 0.92108166, 0.025987105, 0.3884503)
+            float3 xformOp:translate = (0.43215284, 0.005184772, 0.41893303)
+
+            over "geometry" (
+                instanceable = false
+            )
+            {
+            }
+        }
+
+        over "panda_link0"
+        {
+            vector3f physics:angularVelocity = (0, 0, 0)
+            vector3f physics:velocity = (0, 0, 0)
+            quatf xformOp:orient = (1, 0, 0, 0)
+            float3 xformOp:translate = (0, 2.9802322e-10, 0)
+
+            over "panda_joint1"
+            {
+                bool[] isaac:actuator (
+                    displayName = "Actuator"
+                )
+                string isaac:NameOverride (
+                    displayName = "Joint Name Override"
+                )
+                token[] isaac:physics:DofOffsetOpOrder (
+                    displayName = "Dof Offset Op Order"
+                )
+                float state:angular:physics:position = 0.6874924
+                float state:angular:physics:velocity = 0.0002864377
+            }
+        }
+
+        over "panda_link1"
+        {
+            vector3f physics:angularVelocity = (4.282483e-11, -8.990751e-21, 0.0002864376)
+            vector3f physics:velocity = (0, 0, 0)
+            quatf xformOp:orient = (0.999982, 8.5152574e-10, 7.574644e-9, 0.0059994645)
+            float3 xformOp:translate = (0, 2.980232e-10, 0.33299983)
+
+            over "panda_joint2"
+            {
+                float state:angular:physics:position = -32.576504
+                float state:angular:physics:velocity = -0.40950462
+            }
+        }
+
+        over "panda_link2"
+        {
+            vector3f physics:angularVelocity = (0.00491346, -0.4094751, 0.00028648155)
+            vector3f physics:velocity = (0, 0, 0)
+            quatf xformOp:orient = (0.6799032, -0.6775235, -0.20239045, -0.19424646)
+            float3 xformOp:translate = (0, 2.980232e-10, 0.33299983)
+
+            over "panda_joint3"
+            {
+                float state:angular:physics:position = 0.000006835534
+                float state:angular:physics:velocity = -0.00003436606
+            }
+        }
+
+        over "panda_link3"
+        {
+            vector3f physics:angularVelocity = (0.0049319635, -0.4094749, 0.00025752233)
+            vector3f physics:velocity = (-0.0019030288, -0.000023686016, -0.0012160642)
+            quatf xformOp:orient = (0.9598456, 0.0016826721, -0.28046465, 0.0057586664)
+            float3 xformOp:translate = (-0.17012998, -0.0020414803, 0.5992845)
+
+            over "panda_joint4"
+            {
+                float state:angular:physics:position = -160.72287
+                float state:angular:physics:velocity = -1.3926361
+            }
+        }
+
+        over "panda_link4"
+        {
+            vector3f physics:angularVelocity = (-0.011777953, 0.9830609, 0.00025739794)
+            vector3f physics:velocity = (-0.0022204947, -0.000027197275, -0.00071919063)
+            quatf xformOp:orient = (0.31297302, 0.30534217, 0.6377821, -0.6340726)
+            float3 xformOp:translate = (-0.10061446, -0.0012073249, 0.64370453)
+
+            over "panda_joint5"
+            {
+                float state:angular:physics:position = 0.0007657351
+                float state:angular:physics:velocity = -0.003825676
+            }
+        }
+
+        over "panda_link5"
+        {
+            vector3f physics:angularVelocity = (-0.01478643, 0.9830247, 0.0026203361)
+            vector3f physics:velocity = (-0.0051767156, -0.000061029707, -0.0067754732)
+            quatf xformOp:orient = (0.43721488, -0.0053898976, 0.8993371, 0.002625863)
+            float3 xformOp:translate = (0.25230902, 0.0030275395, 0.4713992)
+
+            over "panda_joint6"
+            {
+                float state:angular:physics:position = 173.86893
+                float state:angular:physics:velocity = 0.6922865
+            }
+        }
+
+        over "panda_link6"
+        {
+            vector3f physics:angularVelocity = (-0.0064854943, 0.29078773, 0.002613222)
+            vector3f physics:velocity = (-0.0051767156, -0.000061029707, -0.0067754732)
+            quatf xformOp:orient = (0.6499003, 0.65320086, -0.27080184, 0.27861184)
+            float3 xformOp:translate = (0.25230902, 0.0030275395, 0.4713992)
+
+            over "panda_joint7"
+            {
+                float state:angular:physics:position = 42.454617
+                float state:angular:physics:velocity = 0.007626171
+            }
+        }
+
+        over "panda_link7"
+        {
+            vector3f physics:angularVelocity = (-0.0010256489, 0.29085377, -0.0027107173)
+            vector3f physics:velocity = (-0.0048569776, -0.000051096045, -0.0070873243)
+            quatf xformOp:orient = (-0.14283732, 0.86091334, -0.32847384, 0.36129034)
+            float3 xformOp:translate = (0.3137403, 0.0037635693, 0.5344043)
+        }
+    }
+
+    def PhysicsScene "PhysicsScene" (
+        prepend apiSchemas = ["PhysxSceneAPI", "NewtonSceneAPI"]
+    )
+    {
+        uint physxScene:timeStepsPerSecond = 240
+    }
+
+    def Plane "groundPlane" (
+        prepend apiSchemas = ["PhysicsCollisionAPI"]
+    )
+    {
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Cube "DeskTop" (
+        prepend apiSchemas = ["PhysicsCollisionAPI"]
+    )
+    {
+        color3f[] primvars:displayColor = [(0.48, 0.52, 0.55)]
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (0.7, 0.4, 0.025)
+        double3 xformOp:translate = (0, 0, 0.725)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Cube "DeskLeg_FL" (
+        prepend apiSchemas = ["PhysicsCollisionAPI"]
+    )
+    {
+        color3f[] primvars:displayColor = [(0.13, 0.16, 0.18)]
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (0.035, 0.035, 0.35)
+        double3 xformOp:translate = (-0.6, -0.3, 0.35)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Cube "DeskLeg_FR" (
+        prepend apiSchemas = ["PhysicsCollisionAPI"]
+    )
+    {
+        color3f[] primvars:displayColor = [(0.13, 0.16, 0.18)]
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (0.035, 0.035, 0.35)
+        double3 xformOp:translate = (-0.6, 0.3, 0.35)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Cube "DeskLeg_BL" (
+        prepend apiSchemas = ["PhysicsCollisionAPI"]
+    )
+    {
+        color3f[] primvars:displayColor = [(0.13, 0.16, 0.18)]
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (0.035, 0.035, 0.35)
+        double3 xformOp:translate = (0.6, -0.3, 0.35)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Cube "DeskLeg_BR" (
+        prepend apiSchemas = ["PhysicsCollisionAPI"]
+    )
+    {
+        color3f[] primvars:displayColor = [(0.13, 0.16, 0.18)]
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (0.035, 0.035, 0.35)
+        double3 xformOp:translate = (0.6, 0.3, 0.35)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Cube "PracticeCube" (
+        prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsRigidBodyAPI", "PhysxRigidBodyAPI"]
+    )
+    {
+        vector3f physics:angularVelocity = (0.0067480966, 0.0080675995, 0.00050437835)
+        vector3f physics:velocity = (-0.00004818707, -0.000064093714, -0.0000073504634)
+        float physxRigidBody:sleepThreshold = 0
+        color3f[] primvars:displayColor = [(0.1, 0.45, 0.8)]
+        quatd xformOp:orient = (0.9999998807907104, 8.816061267680197e-7, -7.403903623526276e-7, -0.0003406215982977301)
+        double3 xformOp:scale = (0.025, 0.025, 0.025)
+        double3 xformOp:translate = (0.17998816072940826, -0.000015656169125577435, 0.7749999761581421)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def DomeLight "AmbientLight"
+    {
+        color3f inputs:color = (0.85, 0.9, 1)
+        float inputs:intensity = 700
+    }
+
+    def SphereLight "DeskLight"
+    {
+        color3f inputs:color = (1, 0.93, 0.84)
+        float inputs:intensity = 1800
+        double3 xformOp:translate = (0, -0.8, 2.5)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def OmniGraph "ROS2ClockGraph"
+    {
+        token evaluationMode = "Automatic"
+        token evaluator:type = "execution"
+        token fabricCacheBacking = "StageWithoutHistory"
+        int2 fileFormatVersion = (1, 9)
+        token pipelineStage = "pipelineStageSimulation"
+
+        def OmniGraphNode "OnPlaybackTick" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            token node:type = "omni.graph.action.OnPlaybackTick"
+            int node:typeVersion = 2
+            custom double outputs:deltaSeconds
+            custom double outputs:frame
+            custom uint outputs:tick (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            custom double outputs:time
+            uniform float2 ui:nodegraph:node:pos = (-608.2101, -346.63904)
+        }
+
+        def OmniGraphNode "ReadSimulationTime"
+        {
+            custom uint64 inputs:referenceTimeDenominator
+            custom int64 inputs:referenceTimeNumerator
+            custom bool inputs:resetOnStop
+            token node:type = "isaacsim.core.nodes.IsaacReadSimulationTime"
+            int node:typeVersion = 1
+            custom double outputs:simulationTime
+        }
+
+        def OmniGraphNode "PublishClock" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            custom uint64 inputs:context
+            custom uint inputs:execIn (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            prepend uint inputs:execIn.connect = </World/ROS2ClockGraph/OnPlaybackTick.outputs:tick>
+            custom string inputs:nodeNamespace
+            custom string inputs:qosProfile
+            custom uint64 inputs:queueSize
+            custom double inputs:timeStamp
+            prepend double inputs:timeStamp.connect = </World/ROS2ClockGraph/ReadSimulationTime.outputs:simulationTime>
+            custom string inputs:topicName = "/clock"
+            token node:type = "isaacsim.ros2.bridge.ROS2PublishClock"
+            int node:typeVersion = 1
+            uniform float2 ui:nodegraph:node:pos = (-107.502, -1.7282637)
+        }
+
+        def OmniGraphNode "ros2_publish_joint_state" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            custom uint64 inputs:context
+            custom uint inputs:execIn (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            prepend uint inputs:execIn.connect = </World/ROS2ClockGraph/OnPlaybackTick.outputs:tick>
+            custom uchar[] inputs:jointDofTypes
+            custom double[] inputs:jointEfforts
+            custom token[] inputs:jointNames
+            custom double[] inputs:jointPositions
+            custom double[] inputs:jointVelocities
+            custom string inputs:nodeNamespace
+            custom string inputs:qosProfile
+            custom uint64 inputs:queueSize
+            custom float inputs:sensorTime
+            custom float inputs:stageMetersPerUnit
+            custom rel inputs:targetPrim = </World/Franka> (
+                customData = {
+                    dictionary omni = {
+                        dictionary graph = {
+                            string relType = "target"
+                        }
+                    }
+                }
+            )
+            custom double inputs:timeStamp
+            prepend double inputs:timeStamp.connect = </World/ROS2ClockGraph/ReadSimulationTime.outputs:simulationTime>
+            custom string inputs:topicName
+            token node:type = "isaacsim.ros2.bridge.ROS2PublishJointState"
+            int node:typeVersion = 1
+            uniform token ui:nodegraph:node:expansionState = "open"
+            uniform float2 ui:nodegraph:node:pos = (-85.15619, -396.29425)
+        }
+
+        def OmniGraphNode "ros2_publish_transform_tree" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            custom token[] inputs:childFrames
+            custom uint64 inputs:context
+            custom uint inputs:execIn (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            prepend uint inputs:execIn.connect = </World/ROS2ClockGraph/OnPlaybackTick.outputs:tick>
+            custom string inputs:nodeNamespace
+            custom double4[] inputs:orientations
+            custom token[] inputs:parentFrames
+            custom rel inputs:parentPrim (
+                customData = {
+                    dictionary omni = {
+                        dictionary graph = {
+                            string relType = "target"
+                        }
+                    }
+                }
+            )
+            custom string inputs:qosProfile
+            custom uint64 inputs:queueSize
+            custom bool inputs:staticPublisher
+            custom rel inputs:targetPrims = </World/Franka> (
+                customData = {
+                    dictionary omni = {
+                        dictionary graph = {
+                            string relType = "target"
+                        }
+                    }
+                }
+            )
+            custom double inputs:timeStamp
+            prepend double inputs:timeStamp.connect = </World/ROS2ClockGraph/ReadSimulationTime.outputs:simulationTime>
+            custom string inputs:topicName
+            custom double3[] inputs:translations
+            token node:type = "isaacsim.ros2.bridge.ROS2PublishTransformTree"
+            int node:typeVersion = 1
+            uniform token ui:nodegraph:node:expansionState = "open"
+            uniform float2 ui:nodegraph:node:pos = (-76.16088, -810.9441)
+        }
+
+        def OmniGraphNode "SubscribePickTarget"
+        {
+            custom uint64 inputs:context
+            custom uint inputs:execIn (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            prepend uint inputs:execIn.connect = </World/ROS2ClockGraph/OnPlaybackTick.outputs:tick>
+            custom string inputs:messageName = "PointStamped"
+            custom string inputs:messagePackage = "geometry_msgs"
+            custom string inputs:messageSubfolder = "msg"
+            custom string inputs:nodeNamespace
+            custom string inputs:qosProfile
+            custom uint64 inputs:queueSize
+            custom string inputs:topicName = "/pick_target"
+            token node:type = "isaacsim.ros2.bridge.ROS2Subscriber"
+            int node:typeVersion = 1
+            custom uint outputs:execOut (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            custom token outputs:header:frame_id
+            custom uint outputs:header:stamp:nanosec
+            custom int outputs:header:stamp:sec
+            custom double outputs:point:x
+            custom double outputs:point:y
+            custom double outputs:point:z
+        }
+    }
+
+    def Xform "Debug"
+    {
+        def Sphere "BackProjection_185_205"
+        {
+            color3f[] primvars:displayColor = [(1, 0.02, 0.02)]
+            double radius = 0.012
+            custom float sourceDepthMeters = 0.40124622
+            custom int2 sourcePixel = (185, 205)
+            token visibility = "invisible"
+            double3 xformOp:translate = (0.15334829936019712, -0.17591817273946625, 0.8824998618549188)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def Points "BottleDepthSamples"
+        {
+            point3f[] points = [(0.18622881, -0.1715021, 0.76859325), (0.18961178, -0.1721321, 0.7718159), (0.19315997, -0.17298852, 0.77445036), (0.19684136, -0.17401609, 0.7766538), (0.20065619, -0.17520499, 0.77846426), (0.20446259, -0.17637031, 0.7803505), (0.20828873, -0.17754778, 0.7822233), (0.21212536, -0.17872587, 0.78411114), (0.21600945, -0.17994803, 0.78590995), (0.17267324, -0.17127839, 0.7660103), (0.17574967, -0.17146577, 0.7703417), (0.17888422, -0.17176856, 0.7743426), (0.18212815, -0.17225137, 0.7778585), (0.18543132, -0.1728322, 0.78110975), (0.18878317, -0.17349012, 0.7841563), (0.19217469, -0.17420818, 0.787046), (0.19560201, -0.17497757, 0.78980494), (0.19908324, -0.1758184, 0.7923885), (0.2025272, -0.176612, 0.79508525), (0.20594683, -0.177377, 0.7978478), (0.20916577, -0.17790143, 0.8011695), (0.21243037, -0.17849089, 0.804326), (0.1660981, -0.17236537, 0.76963323), (0.16908135, -0.17241324, 0.77424794), (0.17211768, -0.17258227, 0.7785155), (0.1752037, -0.17285806, 0.78248197), (0.17830105, -0.17317617, 0.78631556), (0.1813619, -0.17346448, 0.79019696), (0.18447909, -0.1738555, 0.7938023), (0.18756899, -0.174227, 0.7974335), (0.19067957, -0.17464477, 0.8009328), (0.19379337, -0.17508268, 0.80436546), (0.19693334, -0.17556913, 0.8076669), (0.20005529, -0.1760449, 0.8109775), (0.20315483, -0.17650494, 0.8143083), (0.20624188, -0.1769621, 0.8176293), (0.20935948, -0.17746834, 0.82082427), (0.1570016, -0.17400633, 0.7669944), (0.15988888, -0.1738271, 0.7721678), (0.16280612, -0.17375366, 0.77702296), (0.16570094, -0.17369068, 0.7818066), (0.16863652, -0.17373809, 0.786273), (0.17154989, -0.17378868, 0.79069346), (0.17442974, -0.17382443, 0.7951124), (0.17731132, -0.17389846, 0.79940164), (0.18020204, -0.1740186, 0.803546), (0.18312149, -0.17420936, 0.8074917), (0.18602698, -0.17440629, 0.8113941), (0.18896313, -0.17466971, 0.815115), (0.19181891, -0.17484647, 0.8190087), (0.19481172, -0.17522724, 0.8224135), (0.19782577, -0.17565084, 0.82570386), (0.20092444, -0.17619497, 0.8287112), (0.2040285, -0.17675444, 0.831674), (0.2070417, -0.17721064, 0.8348503), (0.15120642, -0.17606688, 0.767978), (0.15394478, -0.17556804, 0.77389824), (0.15678702, -0.1753337, 0.7790939), (0.15960634, -0.175118, 0.78419155), (0.16238281, -0.17488478, 0.78928137), (0.16513537, -0.17466612, 0.79428536), (0.16784683, -0.17443237, 0.79927605), (0.17054126, -0.17422208, 0.8041617), (0.1732732, -0.17411721, 0.80875266), (0.17599244, -0.1740341, 0.8132509), (0.17878573, -0.17409888, 0.8173688), (0.18154554, -0.17414623, 0.8214931), (0.1843293, -0.17425807, 0.8254386), (0.1871106, -0.1743935, 0.8293013), (0.1899133, -0.17458323, 0.8330153), (0.19271548, -0.17479455, 0.8366562), (0.19567513, -0.17523265, 0.839782), (0.19862956, -0.17567597, 0.8428822), (0.20177756, -0.17637484, 0.8454269), (0.2047224, -0.17682423, 0.8484919), (0.20793673, -0.17761256, 0.85084), (0.21119544, -0.17845327, 0.85308146), (0.21472907, -0.17961569, 0.85467213), (0.14555857, -0.17829297, 0.76848596), (0.148223, -0.17757447, 0.7748904), (0.15097153, -0.17711371, 0.7805861), (0.15371911, -0.176727, 0.7860399), (0.15641184, -0.17630886, 0.79151195), (0.1590496, -0.1758608, 0.79699713), (0.16162324, -0.17536859, 0.8025278), (0.16419056, -0.17493197, 0.8078683), (0.1668111, -0.17464343, 0.81280905), (0.16937377, -0.17431398, 0.8177943), (0.17199494, -0.17412752, 0.8224045), (0.17461738, -0.1739864, 0.8268693), (0.17722662, -0.1738655, 0.8312483), (0.17987409, -0.1738382, 0.8353817), (0.18249932, -0.17381167, 0.8394785), (0.18525183, -0.1739952, 0.84308755), (0.18797256, -0.17415737, 0.8467174), (0.19075, -0.17441846, 0.85011256), (0.19354619, -0.17472251, 0.85339683), (0.19646952, -0.17520784, 0.8562865), (0.1992974, -0.17558049, 0.8593964), (0.2022353, -0.17610401, 0.8621843), (0.20520426, -0.17667325, 0.8648711), (0.20829651, -0.17739785, 0.8672416), (0.21157151, -0.17834139, 0.8691802), (0.21503472, -0.17950007, 0.8707075), (0.1405529, -0.18183014, 0.7657016), (0.14267473, -0.17981079, 0.7752602), (0.14534126, -0.17910919, 0.78148454), (0.14798732, -0.17846231, 0.7875055), (0.15056685, -0.17777422, 0.79355633), (0.15314302, -0.17716697, 0.7993473), (0.15567026, -0.17654882, 0.80509895), (0.15815291, -0.1759275, 0.81079346), (0.16064095, -0.17538933, 0.816234), (0.16313742, -0.17493218, 0.8214318), (0.16564512, -0.17455399, 0.82639766), (0.16818917, -0.17428888, 0.8310617), (0.17067996, -0.173987, 0.8357615), (0.17321737, -0.17380439, 0.84015554), (0.17566413, -0.17352545, 0.8447168), (0.17814048, -0.17333351, 0.8490483), (0.18071008, -0.17331482, 0.852974), (0.1833312, -0.1733994, 0.8566517), (0.18601522, -0.17359671, 0.86006874), (0.18866646, -0.1737695, 0.86351365), (0.19134004, -0.17399275, 0.86683315), (0.19402358, -0.17424724, 0.87006927), (0.19672732, -0.1745443, 0.8732015), (0.19945724, -0.17488922, 0.87622225), (0.20216288, -0.17521636, 0.87926245), (0.2050298, -0.17575462, 0.8818799), (0.20816377, -0.17662181, 0.8838624), (0.2120935, -0.17843252, 0.88406795), (0.13734908, -0.1824524, 0.7746067), (0.13986832, -0.18131565, 0.7818224), (0.14240965, -0.1803583, 0.7885217), (0.14491196, -0.1794336, 0.79506314), (0.14738573, -0.1785584, 0.8014108), (0.14984381, -0.17775212, 0.8075242), (0.15230647, -0.17704624, 0.8133371), (0.15478256, -0.17644769, 0.81884134), (0.15725219, -0.17591096, 0.82414675), (0.1597072, -0.17541602, 0.8293026), (0.16217779, -0.1750106, 0.8342074), (0.16464236, -0.17465144, 0.83896184), (0.16705973, -0.17426734, 0.8437226), (0.16946018, -0.17390768, 0.84838337), (0.17184614, -0.17357408, 0.85294294), (0.1742153, -0.17326072, 0.8574156), (0.17665318, -0.17309354, 0.8615427), (0.1790815, -0.17294858, 0.86558765), (0.18154779, -0.17289232, 0.8694174), (0.18401049, -0.17286076, 0.8731662), (0.1864309, -0.17279875, 0.8769455), (0.18886638, -0.17278539, 0.88059825), (0.19132115, -0.17282338, 0.8841224), (0.19387157, -0.17300966, 0.8873344), (0.19539689, -0.17189494, 0.8930087), (0.19939235, -0.1739649, 0.89259773), (0.20357285, -0.17622097, 0.89189154), (0.20788059, -0.17858402, 0.8910465), (0.2129026, -0.18175785, 0.8887789), (0.13481005, -0.18441173, 0.7800133), (0.13724488, -0.18306251, 0.7875863), (0.1397599, -0.18204258, 0.79429716), (0.14225431, -0.18109857, 0.8007521), (0.14463994, -0.18003643, 0.80739933), (0.14689519, -0.17882182, 0.81430936), (0.14914547, -0.17771475, 0.8208923), (0.15160303, -0.1771123, 0.8262775), (0.15405343, -0.17657116, 0.83146995), (0.1564779, -0.17605141, 0.83656085), (0.15884243, -0.17549036, 0.84168684), (0.161195, -0.17497326, 0.8466647), (0.16360123, -0.17460683, 0.851273), (0.16596322, -0.17421858, 0.85588145), (0.16824776, -0.17375599, 0.8605977), (0.17055397, -0.17337939, 0.8650899), (0.17283103, -0.17300443, 0.8695346), (0.1751164, -0.172687, 0.8738204), (0.17731065, -0.17227605, 0.87825114), (0.17957531, -0.17201082, 0.88235134), (0.18189834, -0.1718654, 0.8861806), (0.18248996, -0.1693342, 0.8945737), (0.18547794, -0.17020436, 0.89635485), (0.18887858, -0.17162356, 0.89710647), (0.19254684, -0.17337166, 0.8972713), (0.19641882, -0.17534918, 0.8970516), (0.2005674, -0.1776386, 0.8963087), (0.20505573, -0.18030497, 0.89494157), (0.21001019, -0.18348786, 0.8927198), (0.2160822, -0.18795967, 0.8882988), (0.13301687, -0.18809757, 0.7812398), (0.1352694, -0.18621825, 0.7899223), (0.13778767, -0.18515041, 0.7966419), (0.14029266, -0.18417943, 0.8030624), (0.1425427, -0.18276678, 0.81039196), (0.14452186, -0.18091914, 0.8185885), (0.14637432, -0.1789699, 0.826896), (0.14864518, -0.1780111, 0.83294356), (0.15104963, -0.17740658, 0.8381595), (0.15339269, -0.17675942, 0.84341013), (0.15569218, -0.17610483, 0.8486194), (0.1580527, -0.17562936, 0.8533988), (0.1603116, -0.17503567, 0.8583735), (0.16257808, -0.17451726, 0.8631415), (0.16478814, -0.17396185, 0.867935), (0.16698433, -0.17344043, 0.8726103), (0.16912328, -0.1728812, 0.8773123), (0.17123775, -0.17233695, 0.8819357), (0.17339121, -0.17190288, 0.88629675), (0.17420143, -0.16950668, 0.89439327), (0.17691615, -0.17002043, 0.89682364), (0.17995346, -0.171004, 0.89836097), (0.18311019, -0.17214474, 0.89961606), (0.18641675, -0.17347644, 0.9005352), (0.18996084, -0.17510875, 0.9009279), (0.1937817, -0.17707898, 0.90074277), (0.19797255, -0.17949335, 0.8998073), (0.2026405, -0.18246932, 0.8979362), (0.20769802, -0.18586922, 0.8954014), (0.2133727, -0.1899596, 0.8917606), (0.13393706, -0.19095495, 0.78865707), (0.13634153, -0.18949546, 0.79618376), (0.13885596, -0.18845156, 0.8026984), (0.14106657, -0.18684158, 0.8103723), (0.14261837, -0.18393998, 0.8207404), (0.14376035, -0.1803942, 0.83233666), (0.14583482, -0.17902815, 0.8391308), (0.14824747, -0.17846055, 0.8441612), (0.15056041, -0.17777069, 0.8493935), (0.15284422, -0.1771013, 0.85452664), (0.15505888, -0.17637609, 0.8597184), (0.15723972, -0.17566206, 0.86483055), (0.15937522, -0.17493734, 0.8699083), (0.16148081, -0.1742284, 0.87489897), (0.16351554, -0.17346473, 0.8799427), (0.16558883, -0.17282875, 0.88468236), (0.16770321, -0.17231555, 0.8891352), (0.16914669, -0.17079806, 0.895457), (0.17194775, -0.17145959, 0.897584), (0.17481977, -0.17222862, 0.8995097), (0.177787, -0.1731348, 0.9011853), (0.18086742, -0.17419659, 0.9025844), (0.1840943, -0.17545302, 0.90364456), (0.18751684, -0.1769628, 0.90427095), (0.1912133, -0.17882062, 0.9043085), (0.19529147, -0.18115501, 0.9035494), (0.19995357, -0.1842118, 0.90159), (0.20538071, -0.18819372, 0.8981182), (0.21108435, -0.19242829, 0.89432955), (0.13292529, -0.19662474, 0.7854389), (0.13512391, -0.19447811, 0.79440254), (0.13760872, -0.1932407, 0.80128044), (0.13982657, -0.19151406, 0.8091219), (0.14140902, -0.18850602, 0.8195767), (0.14120993, -0.18180904, 0.8376217), (0.14318335, -0.18021087, 0.84476805), (0.14551851, -0.17950009, 0.8499947), (0.14780498, -0.17877226, 0.8551996), (0.15002301, -0.17798917, 0.86045945), (0.15216835, -0.17714617, 0.86578107), (0.15427049, -0.1763019, 0.8710455), (0.1563115, -0.17542301, 0.8763187), (0.15833028, -0.1745801, 0.8814622), (0.16034018, -0.17379294, 0.88644075), (0.16197081, -0.17243049, 0.89246047), (0.164576, -0.17276964, 0.8951936), (0.1672625, -0.1732546, 0.89764214), (0.17000602, -0.17383762, 0.89990246), (0.17282763, -0.17454544, 0.90193105), (0.17572698, -0.17537016, 0.9037489), (0.17872551, -0.17633721, 0.9053168), (0.181976, -0.17766283, 0.9062576), (0.18539864, -0.17921272, 0.90682673), (0.18807879, -0.179681, 0.90931195), (0.19294699, -0.18319933, 0.9065263), (0.19724333, -0.1858402, 0.905338), (0.20272031, -0.19000472, 0.9016398), (0.20901807, -0.19514404, 0.89642775), (0.13404046, -0.19992463, 0.7917502), (0.13645335, -0.1983581, 0.79927236), (0.13872923, -0.19662291, 0.8070536), (0.14039394, -0.19361362, 0.81738067), (0.13860896, -0.1829605, 0.8432814), (0.14061026, -0.18140829, 0.85019416), (0.14288563, -0.18058161, 0.8555545), (0.14509162, -0.17969935, 0.8609668), (0.14723876, -0.17878646, 0.86637896), (0.14931542, -0.17782147, 0.87183195), (0.15135337, -0.1768687, 0.87719876), (0.1533483, -0.17591818, 0.8824999), (0.15526024, -0.17489573, 0.88787735), (0.15760477, -0.1747262, 0.89158326), (0.16015501, -0.1749542, 0.8945157), (0.16278227, -0.17533326, 0.89715266), (0.16545941, -0.17580812, 0.89960366), (0.16817756, -0.17635806, 0.9019116), (0.1709364, -0.17697793, 0.90408975), (0.17381936, -0.17779432, 0.9059167), (0.17619254, -0.17782082, 0.9091401), (0.17816488, -0.17726666, 0.91335404), (0.18038286, -0.17712116, 0.9168202), (0.18315923, -0.17781688, 0.9188206), (0.18648265, -0.17929311, 0.9195012), (0.19015647, -0.18123363, 0.9194313), (0.1947546, -0.18440826, 0.9173569), (0.2070138, -0.19791153, 0.8984024), (0.13542198, -0.20392261, 0.79646355), (0.13778876, -0.20225054, 0.80404764), (0.13954625, -0.19925432, 0.81423163), (0.13619399, -0.18438813, 0.8482043), (0.13808179, -0.18255284, 0.85555494), (0.14029308, -0.18159425, 0.8610747), (0.14244165, -0.18059857, 0.8666046), (0.14451864, -0.1795494, 0.87217516), (0.14652312, -0.17844817, 0.87778133), (0.14857455, -0.17753537, 0.882963), (0.15081918, -0.1770786, 0.8872265), (0.15325318, -0.1770357, 0.8906759), (0.1558053, -0.1772449, 0.89363325), (0.15844317, -0.17762989, 0.89625216), (0.16113012, -0.17811404, 0.898681), (0.16378066, -0.17854367, 0.9012014), (0.16643818, -0.17899519, 0.9036746), (0.16919114, -0.17961289, 0.90584755), (0.17128117, -0.17916237, 0.9098828), (0.17303579, -0.17822504, 0.9147211), (0.17507885, -0.1777968, 0.9186341), (0.1780594, -0.17883688, 0.92002326), (0.18154617, -0.18061972, 0.92017967), (0.18511297, -0.18247989, 0.9202452), (0.18874037, -0.18438575, 0.9202752), (0.19241966, -0.186323, 0.920295), (0.19637518, -0.18860352, 0.9198031), (0.13905132, -0.205955, 0.8091348), (0.13407555, -0.18640344, 0.85181606), (0.1357375, -0.18397906, 0.86019766), (0.13777679, -0.18262158, 0.8663938), (0.13987447, -0.18151894, 0.8720248), (0.14198847, -0.18055633, 0.87732387), (0.14418325, -0.1798568, 0.8820674), (0.14651573, -0.17951486, 0.8860936), (0.1489675, -0.17946485, 0.88954353), (0.15155067, -0.17970747, 0.8924318), (0.15423508, -0.18016356, 0.89491767), (0.15694813, -0.18068288, 0.89728254), (0.15960614, -0.18110931, 0.8998076), (0.16220094, -0.1814346, 0.90250266), (0.16482495, -0.18182537, 0.9050718), (0.16711253, -0.18165709, 0.9085981), (0.16856122, -0.18012956, 0.91442347), (0.17044416, -0.17939673, 0.9188285), (0.17344166, -0.1804971, 0.92011005), (0.17690076, -0.18230303, 0.92023367), (0.18022768, -0.18386297, 0.9207999), (0.18347053, -0.1852633, 0.9216557), (0.18711972, -0.18723978, 0.9216059), (0.19120303, -0.18980329, 0.9206605), (0.19504319, -0.19195466, 0.9204274), (0.13377875, -0.1862228, 0.8631329), (0.13574573, -0.18465021, 0.8696444), (0.13787186, -0.18358614, 0.8751161), (0.140101, -0.18285772, 0.8798988), (0.1424412, -0.18245259, 0.8840337), (0.1448924, -0.18234286, 0.8875894), (0.14745052, -0.18249586, 0.89064103), (0.15011756, -0.18289474, 0.89323276), (0.15285169, -0.18343872, 0.8955568), (0.15554874, -0.18391785, 0.897991), (0.15815836, -0.18424259, 0.90068847), (0.16072032, -0.18449603, 0.9034977), (0.16337709, -0.18493703, 0.9059718), (0.16493802, -0.18347426, 0.9116685), (0.1662875, -0.18173924, 0.9177526), (0.16889912, -0.18221545, 0.9200795), (0.17229342, -0.18398315, 0.92027295), (0.17531204, -0.18510285, 0.92155963), (0.17780362, -0.1853726, 0.92423433), (0.18037874, -0.18578598, 0.9266671), (0.18222189, -0.18509364, 0.9308436), (0.18728743, -0.18926814, 0.9273461), (0.19393389, -0.19564624, 0.92053753), (0.13417052, -0.18772328, 0.87086165), (0.13630043, -0.18660963, 0.8763612), (0.1385952, -0.18598856, 0.8808956), (0.1410099, -0.18571442, 0.8847554), (0.14354485, -0.18575767, 0.88801193), (0.14615238, -0.18599011, 0.89091), (0.14883536, -0.18640245, 0.89347595), (0.15157147, -0.18693542, 0.89582235), (0.15424997, -0.18736163, 0.8983489), (0.15682419, -0.18759878, 0.9011916), (0.15936203, -0.18778765, 0.904102), (0.16205813, -0.188289, 0.90647143), (0.16293342, -0.185525, 0.91427344), (0.16459459, -0.18428972, 0.91944385), (0.16774358, -0.18569556, 0.92024016), (0.17089257, -0.18707077, 0.9211101), (0.17316636, -0.18696952, 0.92436767), (0.17528722, -0.18664898, 0.9279494), (0.17722262, -0.18606943, 0.9319077), (0.18005179, -0.18693183, 0.9335859), (0.1830437, -0.18803634, 0.934898), (0.18724523, -0.19095, 0.9334665), (0.13303933, -0.19192764, 0.86999905), (0.13511243, -0.19057599, 0.87588644), (0.13739537, -0.18985574, 0.880569), (0.13981487, -0.18953806, 0.884487), (0.14232959, -0.1894937, 0.8878892), (0.14493796, -0.18969573, 0.8908367), (0.14761436, -0.19006896, 0.89347214), (0.15034704, -0.19057526, 0.89586943), (0.15303448, -0.19099794, 0.8984034), (0.15560955, -0.19120987, 0.90128404), (0.15814309, -0.19136316, 0.90424764), (0.16083686, -0.19184339, 0.906655), (0.16117753, -0.18797894, 0.9161603), (0.16326134, -0.187466, 0.92009574), (0.16660696, -0.18923761, 0.920331), (0.16930413, -0.18983789, 0.92246145), (0.17115134, -0.188995, 0.92686), (0.17308281, -0.18835087, 0.93090314), (0.17515561, -0.18798694, 0.9344748), (0.17735513, -0.18786371, 0.9376485), (0.18000539, -0.18847854, 0.93968326), (0.18330584, -0.19010098, 0.940209), (0.13407363, -0.19498415, 0.8746794), (0.13630499, -0.194047, 0.87971944), (0.1386915, -0.19358344, 0.8838776), (0.14119056, -0.19345093, 0.8874245), (0.14378901, -0.19359064, 0.8904778), (0.14646858, -0.19393931, 0.89315844), (0.14921245, -0.19444375, 0.8955662), (0.1519061, -0.19485168, 0.8981295), (0.15451302, -0.19509552, 0.9009556), (0.15704465, -0.19520997, 0.90397996), (0.15972996, -0.19564994, 0.90645915), (0.15983208, -0.19118202, 0.91681176), (0.16210741, -0.19098757, 0.92021), (0.16544603, -0.19276676, 0.9204739), (0.16786523, -0.19285865, 0.92340386), (0.16948152, -0.19157031, 0.92844886), (0.17122199, -0.19057159, 0.9329925), (0.17307226, -0.18982083, 0.93711156), (0.17531751, -0.18977343, 0.94013435), (0.17864932, -0.1915091, 0.940489), (0.18234742, -0.19378728, 0.9400781), (0.18563072, -0.19536048, 0.9407413), (0.13318738, -0.19988734, 0.8726871), (0.13531996, -0.19858313, 0.87833965), (0.13766488, -0.19793338, 0.88280374), (0.14013886, -0.19767633, 0.88655674), (0.1427202, -0.19772601, 0.8897628), (0.14538886, -0.19801046, 0.8925569), (0.14814623, -0.19851325, 0.89497745), (0.15090708, -0.19903278, 0.8973651), (0.15354916, -0.1993101, 0.90014094), (0.15610991, -0.19943991, 0.9031416), (0.15875348, -0.19976194, 0.90581954), (0.15907477, -0.19554955, 0.9156383), (0.16096622, -0.19456466, 0.920268), (0.16435467, -0.1964564, 0.9203981), (0.16691804, -0.19678238, 0.9229641), (0.16823803, -0.19488914, 0.9288878), (0.16976222, -0.19345792, 0.93404216), (0.17137447, -0.19226018, 0.93878835), (0.17408364, -0.19298886, 0.9406426), (0.17826118, -0.19615225, 0.9389471), (0.18166168, -0.1979568, 0.9392873), (0.18463263, -0.1990322, 0.9407037), (0.13680772, -0.20280369, 0.8809267), (0.13923013, -0.20233323, 0.8850349), (0.14177813, -0.20223616, 0.88848877), (0.14443693, -0.20244494, 0.8914167), (0.14719334, -0.20290361, 0.893924), (0.15001568, -0.20352119, 0.8961687), (0.152777, -0.20400958, 0.89861745), (0.15541972, -0.20425661, 0.9014416), (0.1580302, -0.20445812, 0.9043239), (0.16083694, -0.20507799, 0.90654373), (0.15992944, -0.19838133, 0.91999054), (0.1632061, -0.2000746, 0.9204679), (0.16647255, -0.20170367, 0.92107224), (0.16788806, -0.19987619, 0.92685807), (0.16893297, -0.19748077, 0.9334107), (0.17019598, -0.19559336, 0.93913317), (0.17306547, -0.19659495, 0.9406006), (0.17703034, -0.19944932, 0.9394219), (0.18034881, -0.20114051, 0.93995696), (0.14100908, -0.2072709, 0.88644195), (0.14363126, -0.20732011, 0.889642), (0.14636862, -0.20767762, 0.8923306), (0.1492055, -0.2082819, 0.89461905), (0.15209305, -0.20900393, 0.8967206), (0.15492764, -0.20960867, 0.8990051), (0.15768537, -0.21005401, 0.90153235), (0.16044746, -0.21051998, 0.9040211), (0.1633672, -0.21131578, 0.9060061), (0.16205524, -0.20372237, 0.92052525), (0.16552237, -0.20575368, 0.92056865), (0.16899773, -0.20774195, 0.9207142), (0.172498, -0.20972127, 0.9209102), (0.17029925, -0.2012805, 0.93611634)]
+            color3f[] primvars:displayColor = [(0, 0.75, 1)]
+            token visibility = "invisible"
+            float[] widths = [0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012]
+        }
+
+        def Sphere "BottleDepthMedian"
+        {
+            color3f[] primvars:displayColor = [(0, 1, 0.05)]
+            double radius = 0.014
+            double3 xformOp:translate = (0.16698433364553647, -0.17896990485748301, 0.8799427213865988)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def Points "BottleBodyRegionSamples"
+        {
+            point3f[] points = [(0.21335201, -0.17894417, 0.78141755), (0.21661437, -0.180088, 0.7824719), (0.20566197, -0.17735091, 0.7900598), (0.20838901, -0.17792213, 0.79241), (0.21112958, -0.17851247, 0.794711), (0.21390826, -0.17915013, 0.7968978), (0.2171277, -0.18030268, 0.7978862), (0.20087817, -0.17627175, 0.8009037), (0.20348164, -0.1767483, 0.80339), (0.20604488, -0.17718065, 0.80597204), (0.2085189, -0.17751117, 0.80877984), (0.21107855, -0.17795324, 0.81132066), (0.21485262, -0.1798337, 0.81059724), (0.19402364, -0.17514136, 0.80798805), (0.19645594, -0.17544183, 0.81081134), (0.19895242, -0.17583504, 0.8134085), (0.20142977, -0.17621154, 0.8160344), (0.20389126, -0.17657605, 0.8186773), (0.20641021, -0.17701893, 0.8211343), (0.20886585, -0.17739077, 0.823742), (0.19012696, -0.17476666, 0.81661576), (0.19243325, -0.17494242, 0.8196461), (0.19481172, -0.17522724, 0.8224135), (0.19721858, -0.17555934, 0.8250623), (0.1997143, -0.17601366, 0.82742894), (0.202137, -0.1763812, 0.82998025), (0.20463201, -0.17684583, 0.83231014), (0.2070417, -0.17721064, 0.8348503), (0.20965104, -0.17782344, 0.8368486), (0.18411165, -0.17427483, 0.8218693), (0.18637925, -0.17442247, 0.82490206), (0.1886161, -0.17454325, 0.82797754), (0.19086643, -0.17469794, 0.8309597), (0.19313015, -0.17488472, 0.8338545), (0.19548729, -0.17520677, 0.836439), (0.1978571, -0.1755538, 0.8389589), (0.20033707, -0.17604865, 0.8411523), (0.20285985, -0.17660053, 0.8432201), (0.20523779, -0.17697516, 0.84565973), (0.20774351, -0.1775121, 0.8477514), (0.21034433, -0.17816547, 0.84959865), (0.21313499, -0.17904326, 0.8509852), (0.18052593, -0.17394985, 0.82993156), (0.182687, -0.17398585, 0.8331353), (0.18485239, -0.17404673, 0.8362639), (0.18705857, -0.17418163, 0.8392118), (0.18939786, -0.1745127, 0.8417193), (0.19158392, -0.17464656, 0.8446397), (0.19381146, -0.17484938, 0.8473972), (0.19611171, -0.17515868, 0.8499163), (0.19861832, -0.17574142, 0.8518536), (0.2009556, -0.17611031, 0.8542337), (0.20327124, -0.17645861, 0.8566482), (0.20568834, -0.17693874, 0.8587853), (0.20819306, -0.1775286, 0.86069626), (0.1771165, -0.17371866, 0.83754057), (0.17922296, -0.17371103, 0.84076357), (0.18128002, -0.17365232, 0.8440755), (0.18338665, -0.17368537, 0.84716827), (0.18551707, -0.17376953, 0.85013306), (0.18766865, -0.17389868, 0.8529856), (0.18990508, -0.17415693, 0.85555273), (0.1921341, -0.17441528, 0.85810834), (0.19434024, -0.17465322, 0.86069465), (0.19661087, -0.17498481, 0.86307824), (0.19885986, -0.17529598, 0.8654946), (0.20118476, -0.1757105, 0.8676945), (0.20349157, -0.17610718, 0.8699242), (0.17188652, -0.17376155, 0.8411719), (0.17391115, -0.17363907, 0.84459347), (0.17588323, -0.17346221, 0.84810656), (0.17789096, -0.173364, 0.8514266), (0.17990683, -0.17330036, 0.8546506), (0.18194854, -0.17329466, 0.85773176), (0.18401437, -0.17334163, 0.86068416), (0.18614839, -0.17349984, 0.8633902), (0.18829969, -0.17369448, 0.866008), (0.19036473, -0.17378429, 0.86882496), (0.19246158, -0.17393048, 0.87151283), (0.19456086, -0.1740921, 0.8741561), (0.19667129, -0.17427965, 0.8767348), (0.16895485, -0.17393517, 0.8475498), (0.17089216, -0.17370246, 0.8511352), (0.17282243, -0.17348754, 0.8546557), (0.1747062, -0.17322932, 0.8582397), (0.17665318, -0.17309354, 0.8615427), (0.17860308, -0.1729854, 0.86476547), (0.18054944, -0.17289403, 0.8679316), (0.18255293, -0.17290479, 0.87086993), (0.18449555, -0.17284739, 0.8739265), (0.1864309, -0.17279875, 0.8769455), (0.18837565, -0.17278102, 0.8798839), (0.19032046, -0.17278016, 0.8827707), (0.19234169, -0.17289622, 0.8854129), (0.16424793, -0.17447965, 0.8499101), (0.16617212, -0.17421752, 0.85351557), (0.16802905, -0.17387758, 0.85725516), (0.16988792, -0.17357337, 0.86089075), (0.17174976, -0.17330438, 0.86442536), (0.17358477, -0.1730229, 0.867958), (0.17540874, -0.17275299, 0.87143975), (0.1772586, -0.17254864, 0.8747635), (0.17905678, -0.17229335, 0.87816375), (0.18088296, -0.17210361, 0.881409), (0.1827478, -0.17199135, 0.8844792), (0.18466958, -0.17197832, 0.8873361), (0.18477403, -0.1694873, 0.8949403), (0.1615733, -0.17479388, 0.8557095), (0.16343556, -0.17444974, 0.85941637), (0.16526295, -0.17408185, 0.8631422), (0.16707687, -0.17372596, 0.86681324), (0.16885817, -0.17335056, 0.8704942), (0.17058367, -0.17291994, 0.87425554), (0.17231643, -0.17253397, 0.8778969), (0.1740359, -0.17215894, 0.8814871), (0.17578, -0.17185068, 0.88491774), (0.17759372, -0.17167194, 0.8880706), (0.17788312, -0.16930856, 0.8954005), (0.18023156, -0.1699694, 0.896874), (0.18275313, -0.17086998, 0.89789766), (0.15725893, -0.17573941, 0.8570874), (0.15906711, -0.17527924, 0.8609972), (0.16084634, -0.17480865, 0.86489534), (0.16259381, -0.17432314, 0.8687905), (0.16429977, -0.1738069, 0.87271404), (0.16600849, -0.17333373, 0.87651837), (0.16767828, -0.17283396, 0.88034296), (0.16932742, -0.17233755, 0.8841283), (0.17106748, -0.17201756, 0.8875396), (0.17156333, -0.16982162, 0.8945293), (0.17371915, -0.1702133, 0.89650244), (0.17605941, -0.17088301, 0.8979453), (0.17845827, -0.17163427, 0.89923906), (0.15490583, -0.17637464, 0.8619955), (0.15664516, -0.17580222, 0.8660658), (0.15831278, -0.17514688, 0.87026614), (0.16000539, -0.17458153, 0.87425023), (0.1616353, -0.17395075, 0.8783284), (0.16325986, -0.17335407, 0.88230354), (0.16493693, -0.17288473, 0.8859971), (0.16575974, -0.17106539, 0.8922532), (0.16767354, -0.17106529, 0.89497066), (0.16986126, -0.17151244, 0.89682627), (0.17212014, -0.17207225, 0.8984678), (0.17441201, -0.1726814, 0.90001816), (0.17676608, -0.17338125, 0.9014032), (0.15259546, -0.17698358, 0.86682624), (0.15427049, -0.1763019, 0.8710455), (0.1559484, -0.17567484, 0.8751193), (0.15752566, -0.17491359, 0.87941897), (0.15915173, -0.17428766, 0.8834169), (0.16070636, -0.17358196, 0.88753265), (0.16197081, -0.17243049, 0.89246047), (0.16404654, -0.17268667, 0.89467657), (0.16617711, -0.17304206, 0.89669836), (0.1683573, -0.1734832, 0.8985552), (0.17055605, -0.17395674, 0.9003495), (0.17282763, -0.17454544, 0.90193105), (0.17513797, -0.17519173, 0.9034094), (0.14864185, -0.1782735, 0.86734384), (0.15029949, -0.17751338, 0.87168604), (0.15192956, -0.17675526, 0.8759845), (0.15357032, -0.17607014, 0.88010234), (0.1551145, -0.17525643, 0.88443017), (0.15656596, -0.17432803, 0.8889361), (0.15847301, -0.17425932, 0.89177364), (0.16051339, -0.17444393, 0.8941183), (0.16260166, -0.17472264, 0.8962776), (0.16473123, -0.17507942, 0.8982853), (0.16689393, -0.17549671, 0.900177), (0.16908087, -0.17595711, 0.901987), (0.17130364, -0.17647693, 0.9036878), (0.1464189, -0.17883159, 0.8720934), (0.14804003, -0.17800638, 0.8764909), (0.14962693, -0.1771721, 0.88086504), (0.15124802, -0.17646022, 0.88496536), (0.15305397, -0.17614652, 0.88827646), (0.15500173, -0.17612787, 0.89100933), (0.15702558, -0.17626813, 0.8934305), (0.15911005, -0.17653082, 0.89561415), (0.16123064, -0.17686638, 0.8976565), (0.16337019, -0.17724147, 0.89962137), (0.16551888, -0.17763746, 0.90154403), (0.16765995, -0.17802544, 0.9034772), (0.16985622, -0.1785081, 0.90523815), (0.14261223, -0.18023999, 0.87230533), (0.14425159, -0.17939734, 0.8767066), (0.1459161, -0.17866783, 0.88085175), (0.14768095, -0.17819493, 0.884475), (0.14955914, -0.17798775, 0.8875706), (0.15152201, -0.17797448, 0.89028406), (0.15356587, -0.17813629, 0.8926585), (0.15567595, -0.17843546, 0.8947706), (0.1578305, -0.17882453, 0.89671266), (0.15998004, -0.17920995, 0.89865726), (0.16208935, -0.17953005, 0.9007146), (0.16419135, -0.17984506, 0.90277505), (0.16631654, -0.18020684, 0.90474707), (0.1406966, -0.18124487, 0.8760357), (0.14243972, -0.1806236, 0.87995565), (0.14427002, -0.18023878, 0.8833989), (0.14616922, -0.18003671, 0.8864757), (0.14813828, -0.18000738, 0.8892125), (0.15019299, -0.18017115, 0.8915795), (0.15231514, -0.18048075, 0.893671), (0.15448822, -0.18089613, 0.8955652), (0.15666498, -0.18132296, 0.8974357), (0.15877816, -0.18163733, 0.89950305), (0.16085942, -0.18190227, 0.9016515), (0.16293603, -0.18216857, 0.90379024), (0.16508086, -0.18256253, 0.9057002), (0.13743198, -0.18375613, 0.87410766), (0.1391938, -0.18310359, 0.87807703), (0.14101402, -0.18263693, 0.8816666), (0.14292268, -0.1824081, 0.88478863), (0.1448924, -0.18234286, 0.8875894), (0.14692807, -0.18244056, 0.89007705), (0.14903949, -0.18271062, 0.89224154), (0.15121275, -0.18311463, 0.8941588), (0.15339898, -0.18354915, 0.8960182), (0.15554874, -0.18391785, 0.897991), (0.15764154, -0.18418594, 0.90013534), (0.1596908, -0.18438366, 0.9023947), (0.16175878, -0.18462738, 0.9045659), (0.13613437, -0.18608671, 0.8752775), (0.13792583, -0.18547475, 0.87913543), (0.13981047, -0.18513046, 0.88247067), (0.14176804, -0.18498977, 0.88541114), (0.14379686, -0.18503489, 0.8879975), (0.14587468, -0.18520601, 0.89034474), (0.14800589, -0.18550405, 0.89245635), (0.15017235, -0.18588397, 0.89441705), (0.15236492, -0.1863224, 0.89627117), (0.15450032, -0.18665263, 0.8983106), (0.15657048, -0.1868653, 0.90054727), (0.15860352, -0.18702006, 0.90287447), (0.16066213, -0.18723609, 0.9050877), (0.13512911, -0.1891266, 0.87513727), (0.13692078, -0.18846983, 0.879052), (0.1388159, -0.18811382, 0.88239086), (0.14078213, -0.18796293, 0.8853378), (0.14280374, -0.18796757, 0.88798964), (0.14488779, -0.18813251, 0.89034414), (0.14701498, -0.18840586, 0.8924988), (0.1491904, -0.18879136, 0.89445156), (0.15137601, -0.18920396, 0.8963535), (0.15351029, -0.18951848, 0.8984201), (0.15556586, -0.18968663, 0.90072954), (0.15759249, -0.18981287, 0.9031), (0.1596549, -0.19002216, 0.905321), (0.13266876, -0.19384314, 0.86924857), (0.13424683, -0.19250761, 0.8744096), (0.13602443, -0.1917607, 0.87846506), (0.13789876, -0.19131063, 0.88195777), (0.13984975, -0.19108844, 0.8850217), (0.14186668, -0.19105323, 0.8877377), (0.14394252, -0.1911762, 0.8901635), (0.14606538, -0.19142075, 0.8923685), (0.1482426, -0.19179459, 0.89434445), (0.1504397, -0.19221708, 0.8962334), (0.1525773, -0.19252184, 0.8983179), (0.15464558, -0.19269598, 0.9006151), (0.15666795, -0.19279328, 0.90303063), (0.13346617, -0.19620202, 0.87316996), (0.13519007, -0.19525257, 0.8775643), (0.1370364, -0.1946814, 0.8812562), (0.13896956, -0.19437432, 0.88445944), (0.14097358, -0.1942746, 0.8872824), (0.14304146, -0.19435151, 0.88978606), (0.14516413, -0.19457248, 0.89203274), (0.14733104, -0.19490477, 0.8940833), (0.14954913, -0.19535612, 0.89592916), (0.1517005, -0.19567038, 0.8980006), (0.15379761, -0.19588162, 0.9002363), (0.15582454, -0.19596349, 0.9026756), (0.13283588, -0.20036529, 0.8711682), (0.13443515, -0.19900617, 0.8762581), (0.13623635, -0.19825819, 0.88024276), (0.1381505, -0.19785458, 0.8836037), (0.14013886, -0.19767633, 0.88655674), (0.14219528, -0.19769274, 0.8891626), (0.14431079, -0.19786951, 0.8914863), (0.14648648, -0.1981984, 0.8935477), (0.14870529, -0.19863169, 0.89543134), (0.15090708, -0.19903278, 0.8973651), (0.15302703, -0.19926628, 0.8995678), (0.13388093, -0.20336659, 0.87397206), (0.13557547, -0.20225695, 0.87856346), (0.13743593, -0.20165367, 0.88225704), (0.13939683, -0.20135646, 0.88540816), (0.14143701, -0.20129171, 0.88815105), (0.14354354, -0.20141238, 0.89057237), (0.14571042, -0.2016919, 0.8927226), (0.14793849, -0.20212151, 0.894622), (0.15018463, -0.20259613, 0.89644593), (0.15238664, -0.20297788, 0.898417), (0.13686755, -0.2059048, 0.8802187), (0.13876154, -0.20537145, 0.88376147), (0.14077203, -0.2051806, 0.8867153), (0.14286253, -0.20521896, 0.88927764), (0.1450214, -0.20544298, 0.89152724), (0.14723843, -0.20581646, 0.8935292), (0.14951088, -0.20632327, 0.8953146), (0.14229581, -0.20937778, 0.88747615), (0.14443377, -0.20950463, 0.88989294), (0.14664006, -0.20981331, 0.8920119), (0.14890686, -0.21027349, 0.89388716)]
+            color3f[] primvars:displayColor = [(0, 0.8, 1)]
+            token visibility = "invisible"
+            float[] widths = [0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018, 0.0018]
+        }
+
+        def Sphere "BottleBodySurfaceCandidate"
+        {
+            color3f[] primvars:displayColor = [(0.1, 1, 0.1)]
+            double radius = 0.012
+            token visibility = "inherited"
+            double3 xformOp:translate = (0.16293602778935887, -0.17686637832765836, 0.8812562076048717)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+}
+
+def Xform "Environment"
+{
+    quatd xformOp:orient = (1, 0, 0, 0)
+    double3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (0, 0, 0)
+    uniform token[] xformOpOrder = []
+
+    def DistantLight "defaultLight" (
+        prepend apiSchemas = ["ShapingAPI"]
+    )
+    {
+        float inputs:angle = 1
+        float inputs:intensity = 3000
+        float inputs:shaping:cone:angle = 180
+        float inputs:shaping:cone:softness
+        float inputs:shaping:focus
+        color3f inputs:shaping:focusTint
+        asset inputs:shaping:ies:file
+        quatd xformOp:orient = (0.6532814824381882, 0.2705980500730985, 0.27059805007309856, 0.6532814824381883)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+}
+
