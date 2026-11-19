@@ -1,0 +1,37 @@
+{
+  "batch_id": "20261119_100850_2791f2d5",
+  "status": "Completed",
+  "requested_runs": 10,
+  "recorded_runs": 10,
+  "evaluated_runs": 10,
+  "success_count": 10,
+  "success_rate": 1.0,
+  "status_counts": {
+    "Succeeded": 10
+  },
+  "failure_phase_counts": {},
+  "max_lift_m": {
+    "min": 0.07295441627502441,
+    "max": 0.07295441627502441,
+    "mean": 0.07295441627502441
+  },
+  "max_slip_m": {
+    "min": 0.0038595076113094283,
+    "max": 0.0038595076113094283,
+    "mean": 0.0038595076113094283
+  },
+  "elapsed_s": {
+    "min": 16.27916751569137,
+    "max": 16.27916751569137,
+    "mean": 16.27916751569137
+  },
+  "started_at": "2026-11-19T10:08:50+0800",
+  "finished_at": "2026-11-19T10:28:37+0800",
+  "output_directory": "PROJECT_ROOT\\outputs\\fixed_pose_grasp_batches\\20261119_100850_2791f2d5",
+  "controller": "PROJECT_ROOT\\scripts\\15_fixed_pose_waterbottle_grasp.py",
+  "acceptance": {
+    "success_rate_target": 0.9,
+    "minimum_lift_m": 0.072,
+    "maximum_slip_m": 0.015
+  }
+}

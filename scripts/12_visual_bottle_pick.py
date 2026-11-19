@@ -57,7 +57,9 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
         await omni.kit.app.get_app().next_update_async()
     stage = omni.usd.get_context().get_stage()
     camera_path = "/World/Franka/panda_hand/WristCamera"
-    bottle_path = "/World/PracticeBottle/Body/_06_mustard_bottle"
+    # Capture the imported bottle014 asset.  The old mustard-bottle prim was
+    # retained only in historical scripts and is not part of the active scene.
+    bottle_path = "/World/PracticeBottle/bottle014"
     camera_prim = stage.GetPrimAtPath(camera_path)
     bottle_prim = stage.GetPrimAtPath(bottle_path)
     if not camera_prim or not bottle_prim:
@@ -68,7 +70,10 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
     render_product = rep.create.render_product(camera_path, (640, 360))
     rgb_annotator = rep.AnnotatorRegistry.get_annotator("rgb")
     depth_annotator = rep.AnnotatorRegistry.get_annotator("distance_to_image_plane")
-    mask_annotator = rep.AnnotatorRegistry.get_annotator("instance_segmentation")
+    # instance_id_segmentation preserves the USD prim path for every visible
+    # mesh.  The semantic annotator only returns generic UNLABELLED here,
+    # which would make a valid bottle produce an empty mask.
+    mask_annotator = rep.AnnotatorRegistry.get_annotator("instance_id_segmentation")
     for annotator in (rgb_annotator, depth_annotator, mask_annotator):
         annotator.attach([render_product])
     try:
@@ -82,7 +87,8 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
             seg_data = seg_data[..., 0]
         labels = seg.get("info", {}).get("idToLabels", {})
         ids = [int(key) for key, value in labels.items()
-               if isinstance(value, str) and value == bottle_path]
+               if isinstance(value, str)
+               and (value == bottle_path or value.startswith(bottle_path + "/"))]
         mask = np.isin(seg_data, ids)
         if rgb.shape != (360, 640, 3) or depth.shape != (360, 640) or not mask.any():
             raise RuntimeError(

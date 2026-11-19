@@ -1,0 +1,233 @@
+{
+  "status": "Succeeded",
+  "phase": "Hold",
+  "detail": "固定坐标侧向夹持并保持抬升",
+  "elapsed_s": 16.27916751569137,
+  "target_body_path": "/World/PracticeBottle/bottle014/body",
+  "start_body_world_m": [
+    0.18000072240829468,
+    -0.20000223815441132,
+    0.920457661151886
+  ],
+  "final_body_world_m": [
+    0.17778965830802917,
+    -0.19803549349308014,
+    0.993406355381012
+  ],
+  "grasp_tcp_world_m": [
+    0.18004117873425635,
+    -0.20003143578729038,
+    1.03
+  ],
+  "final_tcp_world_m": [
+    0.17968019971141294,
+    -0.19869840021134702,
+    1.101932431247296
+  ],
+  "lift_m": 0.07294869422912598,
+  "max_lift_m": 0.07295441627502441,
+  "max_slip_m": 0.0038595076113094283,
+  "finger_position_m": 0.01743151806294918,
+  "grip_hold_position_m": 0.012196836113929748,
+  "contact_geometry": {
+    "before_close": {
+      "/World/PracticeBottle/bottle014/body": {
+        "center_world_m": [
+          0.18023617804569414,
+          -0.19993912034771458,
+          0.8935306923763303
+        ],
+        "size_world_m": [
+          0.0841961961293371,
+          0.08419630543537931,
+          0.28685939861276544
+        ]
+      },
+      "/World/Franka/panda_hand": {
+        "center_world_m": [
+          0.023971641108004586,
+          -0.20216987262804842,
+          1.0297463836125458
+        ],
+        "size_world_m": [
+          0.09255200581619706,
+          0.2048069073427432,
+          0.06353496151208082
+        ]
+      },
+      "/World/Franka/panda_leftfinger/geometry/panda_leftfinger": {
+        "center_world_m": [
+          0.1500295884721143,
+          -0.14261839434483498,
+          1.029594288192167
+        ],
+        "size_world_m": [
+          0.17429997320263507,
+          0.02683107759376424,
+          0.021382303954813775
+        ]
+      },
+      "/World/Franka/panda_rightfinger/geometry/panda_rightfinger": {
+        "center_world_m": [
+          0.14978238105149386,
+          -0.25887961535430326,
+          1.0294173692247468
+        ],
+        "size_world_m": [
+          0.17429995717668406,
+          0.026831079055862933,
+          0.02138230609971159
+        ]
+      },
+      "bottle_collision_section_at_tcp_z": {
+        "z_world_m": 1.0294488962340003,
+        "point_count": 21037,
+        "xy_min_world_m": [
+          0.16001015806446806,
+          -0.22015872541550488
+        ],
+        "xy_max_world_m": [
+          0.20052059106925077,
+          -0.17979067906717666
+        ],
+        "xy_size_world_m": [
+          0.040510433004782714,
+          0.04036804634832822
+        ]
+      },
+      "tcp_world_m": [
+        0.17937221151182658,
+        -0.2008116206998787,
+        1.0294488962340003
+      ],
+      "finger_position_m": 0.044999927282333374,
+      "finger_efforts_n": [
+        0.00021338595252018422,
+        -0.00021345436107367277
+      ]
+    },
+    "after_close": {
+      "/World/PracticeBottle/bottle014/body": {
+        "center_world_m": [
+          0.18026261037434052,
+          -0.19969941037538672,
+          0.8935881844887716
+        ],
+        "size_world_m": [
+          0.08418382610403907,
+          0.08463183838623572,
+          0.28700551169195243
+        ]
+      },
+      "/World/Franka/panda_hand": {
+        "center_world_m": [
+          0.024133897669647054,
+          -0.20160788873693533,
+          1.0298818826290865
+        ],
+        "size_world_m": [
+          0.09252228049795407,
+          0.2047997695720088,
+          0.06344799911637977
+        ]
+      },
+      "/World/Franka/panda_leftfinger/geometry/panda_leftfinger": {
+        "center_world_m": [
+          0.14999357015877893,
+          -0.1683625343534073,
+          1.0297574357952834
+        ],
+        "size_world_m": [
+          0.17428882026513576,
+          0.026834129285049163,
+          0.021275937287192015
+        ]
+      },
+      "/World/Franka/panda_rightfinger/geometry/panda_rightfinger": {
+        "center_world_m": [
+          0.1501293341991103,
+          -0.2312341806100236,
+          1.0296719109492414
+        ],
+        "size_world_m": [
+          0.17428880423649543,
+          0.02683413075702934,
+          0.021275939409268085
+        ]
+      },
+      "bottle_collision_section_at_tcp_z": {
+        "z_world_m": 1.029676295390253,
+        "point_count": 21037,
+        "xy_min_world_m": [
+          0.1600261090520217,
+          -0.2197053997008794
+        ],
+        "xy_max_world_m": [
+          0.20053643556021578,
+          -0.17933595719420942
+        ],
+        "xy_size_world_m": [
+          0.04051032650819408,
+          0.04036944250666999
+        ]
+      },
+      "tcp_world_m": [
+        0.17952659779125527,
+        -0.19956181776220955,
+        1.029676295390253
+      ],
+      "finger_position_m": 0.01819683611392975,
+      "finger_efforts_n": [
+        -45.13010787963867,
+        -47.863441467285156
+      ]
+    }
+  },
+  "phases": [
+    {
+      "phase": "PreGrasp",
+      "elapsed_s": 0.0
+    },
+    {
+      "phase": "Align",
+      "elapsed_s": 3.145833497401327
+    },
+    {
+      "phase": "Approach",
+      "elapsed_s": 8.533333778381348
+    },
+    {
+      "phase": "Close",
+      "elapsed_s": 11.637500606942922
+    },
+    {
+      "phase": "Lift",
+      "elapsed_s": 13.204167355317622
+    },
+    {
+      "phase": "Hold",
+      "elapsed_s": 15.279167463537306
+    }
+  ],
+  "physics_assumptions": {
+    "body_mass_kg": 0.54,
+    "lid_mass_kg": 0.02,
+    "bottle_mass_is_measured": false,
+    "lid_joint_locked_for_test": true,
+    "grasp_height_above_table_m": 0.28,
+    "grasp_tcp_x_offset_m": 0.0,
+    "grasp_tcp_y_offset_m": 0.0,
+    "lift_height_m": 0.08,
+    "gripper_opening_m": 0.09,
+    "gripper_close_speed_m_s": 0.02,
+    "gripper_opening_is_stock_franka": false,
+    "gripper_max_force_n": 300.0,
+    "grip_surface_friction": 6.0,
+    "finger_length_scale": 1.8,
+    "tcp_extension_m": 0.036,
+    "grip_hold_preload_m": 0.006,
+    "expected_neck_diameter_m": 0.039
+  },
+  "run_index": 3,
+  "batch_id": "20261119_100850_2791f2d5"
+}

@@ -18,3 +18,9 @@ assets/
 .idea/
 Thumbs.db
 Desktop.ini
+
+# Local Python environments and model weights
+.venv/
+venv/
+*.pt
+*.onnx

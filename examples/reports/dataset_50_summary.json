@@ -1,0 +1,77 @@
+{
+  "status": "completed",
+  "master_seed": 20261119,
+  "target_samples": 50,
+  "accepted_samples": 50,
+  "attempts": 54,
+  "train_samples": 40,
+  "validation_samples": 10,
+  "ranges": {
+    "bottle_dx_m": [
+      -0.015,
+      0.015
+    ],
+    "bottle_dy_m": [
+      -0.015,
+      0.015
+    ],
+    "ambient_intensity": [
+      500.0,
+      900.0
+    ],
+    "desk_intensity": [
+      1300.0,
+      2300.0
+    ]
+  },
+  "quality_thresholds": {
+    "min_mask_pixels": 1200,
+    "min_bbox_width_px": 12,
+    "min_bbox_height_px": 30,
+    "frame_edge_margin_px": 2
+  },
+  "rejected_attempts": [
+    {
+      "attempt": 14,
+      "reason": "bottle mask clipped by image edge",
+      "bbox_xyxy_px": [
+        256,
+        0,
+        369,
+        293
+      ]
+    },
+    {
+      "attempt": 21,
+      "reason": "bottle mask clipped by image edge",
+      "bbox_xyxy_px": [
+        260,
+        0,
+        373,
+        295
+      ]
+    },
+    {
+      "attempt": 35,
+      "reason": "bottle mask clipped by image edge",
+      "bbox_xyxy_px": [
+        250,
+        1,
+        364,
+        298
+      ]
+    },
+    {
+      "attempt": 41,
+      "reason": "bottle mask clipped by image edge",
+      "bbox_xyxy_px": [
+        267,
+        0,
+        380,
+        296
+      ]
+    }
+  ],
+  "output_dir": "PROJECT_ROOT\\outputs\\bottle_dataset\\batch_20261119_20261118_165034",
+  "created_at": "2026-11-18 16:50:50"
+}

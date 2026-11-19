@@ -183,7 +183,7 @@ def "Render" (
                 token omni:rtx:rendermode = "RealTimePathTracing"
                 color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
                 bool omni:rtx:rt:demoire = 0
-                bool omni:rtx:rt:ecoMode:enabled = 0
+                bool omni:rtx:rt:ecoMode:enabled
                 int omni:rtx:rt:iesTextureRes = 1024
                 bool omni:rtx:rt:indexdirect:enabled = 1
                 token omni:rtx:rt:indexdirect:NanoVDBCompression = "None"
@@ -232,45 +232,7 @@ def "Render" (
                 token omni:rtx:rendermode = "RealTimePathTracing"
                 color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
                 bool omni:rtx:rt:demoire = 0
-                bool omni:rtx:rt:ecoMode:enabled = 0
-                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
-                int omni:rtx:rt:sss:samples = 1
-                uint omni:rtx:rtpt:maxVolumeBounces = 15
-                float omni:rtx:rtpt:modulatingRoughnessThreshold = 0.08
-                bool omni:rtx:scene:hydra:materialSyncLoads = 1
-                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
-                rel orderedVars = </Render/Vars/LdrColor>
-                custom bool overrideClipRange = 0
-                uniform int2 resolution = (1280, 720)
-            }
-
-            def RenderProduct "camera_sensor_164734785168" (
-                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxSettingsParticleFieldAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
-                hide_in_stage_window = true
-                no_delete = true
-            )
-            {
-                rel camera = </World/Franka/panda_hand/WristCamera>
-                token omni:rtx:ambientOcclusion:denoiserMode = "none"
-                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
-                token omni:rtx:background:source:type = "domeLight"
-                bool omni:rtx:debug:view:pixelDebug:enableFixedTextPos = 1
-                token omni:rtx:directLighting:sampledLighting:denoisingTechnique = "None"
-                bool omni:rtx:dlss:frameGeneration = 0
-                bool omni:rtx:indirectDiffuse:denoiser:enabled = 0
-                bool omni:rtx:material:db:syncLoads = 1
-                token omni:rtx:post:dlss:execMode = "performance"
-                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
-                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
-                bool omni:rtx:pt:adaptiveSampling:filterError = 0
-                uint omni:rtx:pt:adaptiveSampling:fixedSppIterations = 2
-                uint omni:rtx:pt:maxSamplesPerLaunch = 2073600
-                uint omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
-                bool omni:rtx:reflections:denoiser:enabled = 0
-                token omni:rtx:rendermode = "RealTimePathTracing"
-                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
-                bool omni:rtx:rt:demoire = 0
-                bool omni:rtx:rt:ecoMode:enabled = 0
+                bool omni:rtx:rt:ecoMode:enabled
                 bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
                 int omni:rtx:rt:sss:samples = 1
                 uint omni:rtx:rtpt:maxVolumeBounces = 15
@@ -314,7 +276,9 @@ def "Render" (
 
 def "World"
 {
-    def Xform "PracticeBottle"
+    def Xform "PracticeBottle_MustardBackup" (
+        active = false
+    )
     {
         float xformOp:rotateX = -90
         float xformOp:rotateY = 0
@@ -397,11 +361,11 @@ def "World"
                 float exposure:time = 0.02
                 float focalLength = 18.147562
                 float focusDistance = 400
-                custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -205.8837506499713)
+                custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -217.80558854789535)
                 float verticalAperture = 11.787188
-                quatd xformOp:orient = (0.30100499349154614, 0.3081457998655134, 0.8914950132271426, -0.14028115094172222)
+                quatd xformOp:orient = (0.2851259431870518, 0.32585321547809415, 0.8840962383514606, -0.17577462791051057)
                 double3 xformOp:scale = (1, 1.0000000000000007, 1.0000000000000009)
-                double3 xformOp:translate = (0.08010309934616089, 0.000004585832357406616, 0.0399630069732666)
+                double3 xformOp:translate = (0.08010307528651206, 0.000004585932357406616, 0.03996291466709412)
                 uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
             }
         }
@@ -876,6 +840,47 @@ def "World"
             token visibility = "inherited"
             double3 xformOp:translate = (0.16293602778935887, -0.17686637832765836, 0.8812562076048717)
             uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+
+    def Xform "PracticeBottle" (
+        prepend references = @assets/waterbottle_only_bottom_origin.usda@
+    )
+    {
+        double3 xformOp:translate = (0.18, -0.2, 0.75)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        over "PhysicsScene" (
+            active = false
+        )
+        {
+        }
+
+        over "bottle014"
+        {
+            over "lid"
+            {
+                vector3f physics:angularVelocity = (-8.841361, 13.245996, 10.452614)
+                vector3f physics:velocity = (-0.035863515, -0.018254748, -0.009224688)
+                quatf xformOp:orient = (0.9999974, -0.00024221223, -0.00050356006, 0.0022126539)
+                double3 xformOp:translate = (0.0001405251026153631, -0.00008763670921324573, 0.17034947872161865)
+
+                over "Visuals_002"
+                {
+                    float3 xformOp:rotateXYZ = (0, 0, 0)
+                    float3 xformOp:scale = (1.2850887, 1.2850887, 1.2850887)
+                    double3 xformOp:translate = (0.0004546953439541479, -0.0027718788410373563, 0.11259332471019518)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+                }
+            }
+        }
+
+        over "Body"
+        {
+            quatf xformOp:orient = (1, 0.000007940263, 0.0000030952326, 0.000029137229)
+            float3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0.000010140538506675512, 0.00029121851548552513, 0.0000012958049637745717)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
         }
     }
 }

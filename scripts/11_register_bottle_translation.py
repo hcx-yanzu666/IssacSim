@@ -21,10 +21,11 @@ from isaacsim.robot_motion.motion_generation import (
 )
 
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_DIR = SCRIPT_DIR.parent / "outputs" / "wrist_rgbd_01"
-BODY_PATH = "/World/PracticeBottle/Body"
-MESH_PATH = BODY_PATH + "/_06_mustard_bottle"
+DATA_DIR = Path(__file__).resolve().parent.parent / "outputs" / "wrist_rgbd_01"
+# Current primary asset.  Keep the old mustard-bottle path out of the
+# perception path; it is no longer present after the bottle014 replacement.
+BODY_PATH = "/World/PracticeBottle/bottle014/body"
+MESH_PATH = BODY_PATH + "/Visuals"
 CAMERA_PATH = "/World/Franka/panda_hand/WristCamera"
 SAMPLE_STRIDE = 4
 MODEL_SAMPLE_COUNT = 4000

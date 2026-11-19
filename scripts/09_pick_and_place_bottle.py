@@ -5,7 +5,7 @@
 start() 默认读取场景瓶子位姿；start(bottle_position_world_m=[x, y, z])
 使用外部提供的瓶子 Body 世界位置作为抓取参考，不会移动瓶子。
 当前仅用参考位置的 X/Y；TCP 高度仍由桌面和 GRASP_HEIGHT_M 决定。
-保留官方603g质量。摩擦是明确的仿真假设，尚非实测标定。
+新资产 bottle014 使用约560g仿真质量基线（瓶身0.54kg、瓶盖0.02kg），尚未实物称重。摩擦是明确的仿真假设，尚非实测标定。
 TODO：先只改PLACE_XY_M的Y为0.15，对照落点与报告；再研究抓取高度。
 """
 import asyncio
@@ -24,8 +24,14 @@ from pxr import Gf, Usd, UsdGeom, UsdPhysics, UsdShade, PhysxSchema
 from isaacsim.core.utils.rotations import quat_to_rot_matrix
 from isaacsim.core.utils.types import ArticulationAction
 
-BODY_PATH = '/World/PracticeBottle/Body'
-MESH_PATH = BODY_PATH + '/_06_mustard_bottle'
+# Active bottle asset.  The mustard-bottle prototype is kept only in the
+# historical repair lesson; all current pick/place and visual-pick paths use
+# the imported bottle014 hierarchy.
+BODY_PATH = '/World/PracticeBottle/bottle014/body'
+# The imported asset has separate visual and collision hierarchies.  Physics
+# material and convex decomposition must be applied to the collision meshes,
+# not to the render-only Visuals mesh.
+MESH_PATH = BODY_PATH + '/Collisions'
 GRASP_HEIGHT_M = 0.11  # TCP相对桌面高度；实测可减小搬运期间的瓶身倾斜与滑移。
 GRASP_X_OFFSET_M = 0.0  # 加长夹指后，TCP对准瓶身几何中心。
 APPROACH_YAW_DEGREES = 0.0
@@ -33,15 +39,24 @@ PLACE_XY_M = (0.18, 0.20)
 LIFT_HEIGHT_M = 0.12
 MOVE_SPEED_M_S = 0.035
 MAX_ARM_TARGET_SPEED_RAD_S = 0.8
-OPEN_POSITION_M = 0.04
-STATIC_FRICTION = 1.5  # 高摩擦指垫的实验假设，尚未实物标定。
-DYNAMIC_FRICTION = 1.5
-GRIP_DRIVE_MAX_FORCE_N = 60.0  # 驱动器作用力上限，不是实测指尖力。
+OPEN_POSITION_M = 0.045  # total opening 90 mm; covers the bottle014 85.5 mm body
+MAX_TCP_REFERENCE_LAG_M = 0.012
+EXPECTED_MIDBODY_GRIPPER_POSITION_M = 0.041  # collision section at grasp height: about 81.9 mm
+GRIP_CLOSE_SPEED_M_S = 0.020
+GRIP_CLOSE_TIMEOUT_S = 4.0
+GRIP_CONTACT_STABLE_S = 0.25
+GRIP_CONTACT_POSITION_TOLERANCE_M = 0.004
+GRIP_HOLD_PRELOAD_M = 0.001
+STATIC_FRICTION = 6.0  # 与已验证的固定抓取基线一致；仿真假设，尚未实物标定。
+DYNAMIC_FRICTION = 6.0
+GRIP_DRIVE_MAX_FORCE_N = 300.0  # 驱动器作用力上限，不是实测指尖力。
 FINGER_LENGTH_SCALE = 1.8  # 自定义加长夹指：外观与碰撞几何同步缩放。
 TCP_EXTENSION_M = 0.036
-GRIP_DRIVE_STIFFNESS = 5000.0
+GRIP_DRIVE_STIFFNESS = 20000.0
 GRIP_DRIVE_DAMPING = 100.0
 PHYSICS_HZ = 240  # 高刚度夹持需要更小物理步长，降低接触与mimic耦合振荡。
+BOTTLE_BODY_MASS_KG = 0.54  # 560g满瓶基线：瓶盖约20g；待实物称重后替换。
+BOTTLE_LID_MASS_KG = 0.02
 WALL_TIMEOUT_SECONDS = 600  # 编辑器低实时率时留出运行时间；仿真100秒/阶段22秒限制仍保留。
 TASK_KEY = '_isaac_lesson09_task'
 RESULT_KEY = '_isaac_lesson09_result'
@@ -70,17 +85,28 @@ def prepare_physics():
     if not omni.timeline.get_timeline_interface().is_stopped():
         raise RuntimeError('配置物理参数前请Stop')
     mesh = stage.GetPrimAtPath(MESH_PATH)
-    if UsdGeom.Xformable(mesh).GetLocalTransformation().ExtractTranslation().GetLength() > 0.001:
-        raise RuntimeError('瓶身内部Mesh出现偏移，请先运行08_repair_bottle_transform.py修复')
+    if not mesh:
+        raise RuntimeError('新水瓶缺少 Collisions 碰撞层级')
     compat = runpy.run_path(str(Path(__file__).with_name('franka_visual_compat.py')))
     compat['prepare_franka_visuals'](stage)
     with Usd.EditContext(stage, stage.GetSessionLayer()):
         for prim in stage.Traverse():
             if prim.IsA(UsdPhysics.Scene):
                 PhysxSchema.PhysxSceneAPI.Apply(prim).CreateTimeStepsPerSecondAttr(PHYSICS_HZ)
+        # The dataset scene authors the bottle as kinematic. It can be
+        # positioned for capture, but PhysX will not let a grasp lift it
+        # until this task switches the body back to a dynamic rigid body.
+        body_rigid = UsdPhysics.RigidBodyAPI.Apply(stage.GetPrimAtPath(BODY_PATH))
+        body_rigid.CreateKinematicEnabledAttr().Set(False)
         bottle_api = PhysxSchema.PhysxRigidBodyAPI.Apply(stage.GetPrimAtPath(BODY_PATH))
         bottle_api.CreateSolverPositionIterationCountAttr(32)
         bottle_api.CreateSolverVelocityIterationCountAttr(8)
+        body_mass = UsdPhysics.MassAPI.Apply(stage.GetPrimAtPath(BODY_PATH))
+        body_mass.CreateMassAttr(BOTTLE_BODY_MASS_KG).Set(BOTTLE_BODY_MASS_KG)
+        lid = stage.GetPrimAtPath('/World/PracticeBottle/bottle014/lid')
+        if lid:
+            lid_mass = UsdPhysics.MassAPI.Apply(lid)
+            lid_mass.CreateMassAttr(BOTTLE_LID_MASS_KG).Set(BOTTLE_LID_MASS_KG)
         # 与第五课一致：当前机器人资产惯量偏小，按碰撞几何估算。
         for prim in Usd.PrimRange(stage.GetPrimAtPath('/World/Franka')):
             if prim.HasAPI(UsdPhysics.RigidBodyAPI):
@@ -88,11 +114,18 @@ def prepare_physics():
                 mass.CreateDiagonalInertiaAttr(Gf.Vec3f(0))
                 mass.CreatePrincipalAxesAttr(Gf.Quatf(1))
         PhysxSchema.PhysxArticulationAPI.Apply(stage.GetPrimAtPath('/World/Franka')).CreateSolverVelocityIterationCountAttr(8)
-        # 原7.2N/400驱动在603g瓶子测试中滑脱；这是仿真实验配置，非实机标定。
+        # 这是仿真实验配置，非实机标定。
         drive = UsdPhysics.DriveAPI(stage.GetPrimAtPath('/World/Franka/panda_hand/panda_finger_joint1'), 'linear')
         drive.GetMaxForceAttr().Set(GRIP_DRIVE_MAX_FORCE_N)
         drive.GetStiffnessAttr().Set(GRIP_DRIVE_STIFFNESS)
         drive.GetDampingAttr().Set(GRIP_DRIVE_DAMPING)
+        # bottle014 is about 85.5 mm wide.  The stock Franka finger-joint
+        # limit is 40 mm per side (80 mm total), so raise both symmetric
+        # limits to match the 45 mm half-opening commanded by this demo.
+        for name in ('panda_finger_joint1', 'panda_finger_joint2'):
+            joint = UsdPhysics.PrismaticJoint(
+                stage.GetPrimAtPath(f'/World/Franka/panda_hand/{name}'))
+            joint.GetUpperLimitAttr().Set(OPEN_POSITION_M)
         other = UsdPhysics.DriveAPI.Apply(stage.GetPrimAtPath('/World/Franka/panda_hand/panda_finger_joint2'), 'linear')
         other.CreateMaxForceAttr(0.)
         other.CreateStiffnessAttr(0.)
@@ -112,8 +145,14 @@ def prepare_physics():
         api.CreateStaticFrictionAttr(STATIC_FRICTION)
         api.CreateDynamicFrictionAttr(DYNAMIC_FRICTION)
         api.CreateRestitutionAttr(0.0)
-        for path in (MESH_PATH, '/World/Franka/panda_leftfinger/geometry/panda_leftfinger',
-                     '/World/Franka/panda_rightfinger/geometry/panda_rightfinger'):
+        collision_targets = [prim for prim in Usd.PrimRange(mesh)
+                             if prim.IsA(UsdGeom.Mesh) and prim.HasAPI(UsdPhysics.CollisionAPI)]
+        if not collision_targets:
+            raise RuntimeError('新水瓶 Collisions 下没有带 PhysicsCollisionAPI 的网格')
+        target_paths = [str(prim.GetPath()) for prim in collision_targets]
+        target_paths += ['/World/Franka/panda_leftfinger/geometry/panda_leftfinger',
+                         '/World/Franka/panda_rightfinger/geometry/panda_rightfinger']
+        for path in target_paths:
             prim = stage.GetPrimAtPath(path)
             if not prim or not prim.HasAPI(UsdPhysics.CollisionAPI):
                 raise RuntimeError(f'缺少碰撞体：{path}')
@@ -128,8 +167,9 @@ def prepare_physics():
             decomposition = PhysxSchema.PhysxConvexDecompositionCollisionAPI.Apply(prim)
             UsdPhysics.MeshCollisionAPI.Apply(prim).CreateApproximationAttr('convexDecomposition')
             decomposition.CreateShrinkWrapAttr(True)
-            decomposition.CreateErrorPercentageAttr(2. if path == MESH_PATH else 1.)
-            decomposition.CreateMaxConvexHullsAttr(64 if path == MESH_PATH else 16)
+            is_bottle_collision = path in target_paths[:-2]
+            decomposition.CreateErrorPercentageAttr(2. if is_bottle_collision else 1.)
+            decomposition.CreateMaxConvexHullsAttr(64 if is_bottle_collision else 16)
 
 
 class BottleLesson(lesson04['HoverLesson']):
@@ -162,26 +202,38 @@ class BottleLesson(lesson04['HoverLesson']):
         body = self.stage.GetPrimAtPath(BODY_PATH)
         mesh = self.stage.GetPrimAtPath(MESH_PATH)
         body_world = UsdGeom.Xformable(body).ComputeLocalToWorldTransform(Usd.TimeCode.Default())
-        mesh_local = UsdGeom.Xformable(mesh).ComputeLocalToWorldTransform(Usd.TimeCode.Default()) * body_world.GetInverse()
-        self.points = np.array([mesh_local.Transform(Gf.Vec3d(v)) for v in UsdGeom.Mesh(mesh).GetPointsAttr().Get()])
+        body_inverse = body_world.GetInverse()
+        collision_points = []
+        for collision_mesh in Usd.PrimRange(mesh):
+            if not collision_mesh.IsA(UsdGeom.Mesh):
+                continue
+            points_attr = UsdGeom.Mesh(collision_mesh).GetPointsAttr()
+            points = points_attr.Get() or []
+            mesh_world = UsdGeom.Xformable(collision_mesh).ComputeLocalToWorldTransform(
+                Usd.TimeCode.Default())
+            mesh_to_body = mesh_world * body_inverse
+            collision_points.extend(
+                mesh_to_body.Transform(Gf.Vec3d(v)) for v in points
+            )
+        self.points = np.array(collision_points, dtype=float)
         if not len(self.points) or not np.all(np.isfinite(self.points)):
             raise RuntimeError('瓶身几何无效')
         self.local_lo, self.local_hi = self.points.min(axis=0), self.points.max(axis=0)
-        # 原资产-Y朝瓶盖，+Y为瓶底；用实际瓶底区域建立放置参考。
-        self.base_center_local = self.points[self.points[:, 1] > self.local_hi[1]-0.002].mean(axis=0)
+        # bottle014 is authored with local +Z as its vertical axis.  Use the
+        # lowest collision section as the support reference instead of the old
+        # mustard-bottle Y-axis convention.
+        self.base_center_local = self.points[self.points[:, 2] < self.local_lo[2]+0.002].mean(axis=0)
         r = quat_to_rot_matrix(self.start_q)
-        # 仅适配当前直立、薄侧沿世界Y的瓶子。换朝向时须重新计算夹爪朝向。
-        if np.dot(r @ np.array([0., -1., 0.]), [0., 0., 1.]) < np.cos(np.deg2rad(5)):
-            raise RuntimeError('瓶子初始不直立，请Stop恢复或修复场景')
-        narrow = r @ np.array([0., 0., 1.])
-        if abs(narrow[1]) < 0.99:
-            raise RuntimeError('本课要求瓶身薄侧沿世界Y，不能直接夹9.6cm宽侧')
+        world_vertical = r @ np.array([0., 0., 1.])
+        if abs(float(np.dot(world_vertical, [0., 0., 1.]))) < np.cos(np.deg2rad(5)):
+            raise RuntimeError('瓶子初始姿态不是竖直放置，请Stop恢复或修复场景')
         self.body_size = self.local_hi-self.local_lo
-        if self.body_size[2] >= 2*OPEN_POSITION_M-0.006:
-            raise RuntimeError('薄侧宽度超出当前演示夹爪开口')
+        grasp_width = max(float(self.body_size[0]), float(self.body_size[1]))
+        if grasp_width >= 2*OPEN_POSITION_M-0.002:
+            raise RuntimeError(f'瓶身宽度 {grasp_width*1000:.1f}mm 超出当前夹爪开口 {2*OPEN_POSITION_M*1000:.1f}mm')
         self.mass_kg = float(UsdPhysics.MassAPI(body).GetMassAttr().Get())
-        if abs(self.mass_kg-0.603) > 0.005:
-            raise RuntimeError('本课要求保留官方约603g质量，配置已变化')
+        if not np.isfinite(self.mass_kg) or self.mass_kg <= 0:
+            raise RuntimeError('瓶身质量属性无效，请检查 USD 资产')
         self.initial_bottom = float((self.points @ r.T+self.start_p)[:, 2].min())
         if abs(self.initial_bottom-self.table_z) > 0.008:
             raise RuntimeError('瓶子初始不在桌面附近')
@@ -206,9 +258,14 @@ class BottleLesson(lesson04['HoverLesson']):
         self.phase_trace = [{'phase': self.phase, 'time': 0.0}]
         self.metrics = {}
         self.phase_diagnostics = []
+        self.arm_tracking_failure = None
         self._last_diagnostic_time = {}
+        self.tracking_error_seconds = 0.0
+        self.finger_stable_seconds = 0.0
+        self.last_finger_position = float(self.robot.get_joint_positions()[self.finger])
         self.max_lift_m = self.max_slip_m = self.stable_seconds = 0.0
         self.relative_reference = None
+        self.grasp_contact_confirmed = False
         self.pick_verified = self.release_commanded = False
         self.stable_reference = None
         # 水平姿态的RMPflow会落入腕部限位附近的局部解。
@@ -246,11 +303,21 @@ class BottleLesson(lesson04['HoverLesson']):
         self.controller.apply_action(ArticulationAction(
             joint_positions=np.array([position]), joint_indices=np.array([self.finger])))
 
-    def set_tcp(self, goal, dt):
+    def set_tcp(self, goal, dt, actual_tcp=None):
+        # Keep the Cartesian waypoint reference continuous, but stop advancing
+        # it while the physical TCP has fallen too far behind.
+        if actual_tcp is None:
+            actual_tcp, _ = self.actual_pose()
+        actual_tcp = np.asarray(actual_tcp, dtype=float)
+        lag = float(np.linalg.norm(self.command_tcp-actual_tcp))
         delta = goal-self.command_tcp
         distance = float(np.linalg.norm(delta))
-        if distance:
+        if distance and lag <= MAX_TCP_REFERENCE_LAG_M:
             self.command_tcp += delta*min(1., MOVE_SPEED_M_S*dt/distance)
+        elif distance == 0.0:
+            self.command_tcp = np.asarray(goal, dtype=float).copy()
+        # Use the commanded joint solution as the IK seed to preserve the
+        # same branch along the path; the drive-tracking watchdog checks lag.
         attempts = []
         for position_tolerance, orientation_tolerance in ((0.0005, 0.005), (0.001, 0.01), (0.002, 0.02)):
             q, ok = self.solver.compute_inverse_kinematics(
@@ -261,7 +328,8 @@ class BottleLesson(lesson04['HoverLesson']):
             attempts.append({'position_tolerance_m': position_tolerance,
                              'orientation_tolerance_rad': orientation_tolerance,
                              'converged': bool(ok), 'max_joint_delta_rad': delta_q,
-                             'joint_delta_rad': (np.asarray(q-self.arm_command).tolist() if ok else None)})
+                             'joint_delta_rad': (np.asarray(q-self.arm_command).tolist() if ok else None),
+                             'tcp_reference_lag_m': lag})
             # Lula 在这段冗余姿态附近会出现约0.19rad的有效解变化；
             # 关节参考仍由 apply_arm 限速，避免把IK目标变化直接施加到物理关节。
             if ok and delta_q < 0.25:
@@ -276,8 +344,35 @@ class BottleLesson(lesson04['HoverLesson']):
         scale = min(1., MAX_ARM_TARGET_SPEED_RAD_S*dt/max(float(np.max(np.abs(delta))), 1e-9))
         self.arm_command += delta*scale
         actual = self.robot.get_joint_positions()[self.arm_indices]
-        if np.max(np.abs(self.arm_command-actual)) > 0.25:
-            raise RuntimeError('关节未跟上参考轨迹，可能接触受阻')
+        tracking_error = self.arm_command-actual
+        max_error_index = int(np.argmax(np.abs(tracking_error)))
+        max_error = float(abs(tracking_error[max_error_index]))
+        self.tracking_error_seconds = (self.tracking_error_seconds + dt
+                                       if max_error > 0.10 else 0.0)
+        if max_error > 0.25 or self.tracking_error_seconds >= 0.30:
+            dof_names = getattr(self.robot, 'dof_names', ())
+            global_joint_index = int(self.arm_indices[max_error_index])
+            joint_name = (str(dof_names[global_joint_index])
+                          if global_joint_index < len(dof_names) else f'dof_{global_joint_index}')
+            self.arm_tracking_failure = {
+                'phase': self.phase,
+                'phase_time_s': float(self.phase_time),
+                'elapsed_s': float(self.elapsed),
+                'joint_name': joint_name,
+                'joint_index': global_joint_index,
+                'reference_rad': float(self.arm_command[max_error_index]),
+                'actual_rad': float(actual[max_error_index]),
+                'error_rad': float(tracking_error[max_error_index]),
+                'all_joint_errors_rad': tracking_error.tolist(),
+                'all_joint_reference_rad': self.arm_command.tolist(),
+                'all_joint_actual_rad': actual.tolist(),
+                'tcp_reference_world_m': self.command_tcp.tolist(),
+                'tcp_actual_world_m': self.actual_pose()[0].tolist(),
+                'arm_goal_rad': self.arm_goal.tolist(),
+                'tracking_error_duration_s': float(self.tracking_error_seconds),
+            }
+            raise RuntimeError('关节未跟上参考轨迹：' + json.dumps(
+                self.arm_tracking_failure, ensure_ascii=False))
         self.controller.apply_action(ArticulationAction(
             joint_positions=self.arm_command, joint_velocities=(self.arm_command-previous)/dt,
             joint_indices=self.arm_indices))
@@ -298,7 +393,10 @@ class BottleLesson(lesson04['HoverLesson']):
     def measure(self, tcp, p, q):
         r = quat_to_rot_matrix(q)
         bottom = float((self.points @ r.T+p)[:, 2].min())
-        tilt = float(np.rad2deg(np.arccos(np.clip(np.dot(r @ [0., -1., 0.], [0., 0., 1.]), -1., 1.))))
+        # bottle014 uses local +Z as its longitudinal axis. Use the absolute
+        # dot product so the test measures uprightness independent of axis sign.
+        vertical_alignment = abs(float(np.dot(r @ [0., 0., 1.], [0., 0., 1.])))
+        tilt = float(np.rad2deg(np.arccos(np.clip(vertical_alignment, -1., 1.))))
         return {'lift_m': float(p[2]-self.start_p[2]), 'bottom_clearance_m': bottom-self.table_z,
                 'tilt_degrees': tilt, 'xy_error_m': float(np.linalg.norm(p[:2]-self.place_body[:2])),
                 'height_error_m': float(abs(p[2]-self.place_body[2])),
@@ -308,13 +406,20 @@ class BottleLesson(lesson04['HoverLesson']):
                 'finger_position_m': float(self.robot.get_joint_positions()[self.finger]),
                 'tcp_above_bottle_top_m': float(tcp[2]-(self.points @ r.T+p)[:, 2].max())}
 
-    def record_phase_diagnostic(self, phase, tcp, rotation, bottle_p, bottle_q):
-        if phase not in ('Transfer', 'Lower', 'Release', 'RetreatClear'):
+    def record_phase_diagnostic(self, phase, tcp, rotation, bottle_p, bottle_q,
+                                force=False):
+        if phase not in ('PreGrasp', 'Align', 'Approach', 'Close', 'Lift',
+                         'Transfer', 'Lower', 'Release', 'RetreatClear'):
             return
         previous = self._last_diagnostic_time.get(phase, -1.0)
-        if self.phase_time-previous < 0.5:
+        if not force and self.phase_time-previous < 0.5:
             return
         goal = {
+            'PreGrasp': self.target_tcp,
+            'Align': self.approach_start,
+            'Approach': self.grasp_tcp,
+            'Close': self.grasp_tcp,
+            'Lift': self.lift_tcp,
             'Transfer': getattr(self, 'transfer_tcp', None),
             'Lower': getattr(self, 'lower_goal', None),
             'Release': getattr(self, 'place_tcp', None),
@@ -332,6 +437,7 @@ class BottleLesson(lesson04['HoverLesson']):
             'phase_time_s': float(self.phase_time),
             'tcp_world_m': tcp.tolist(),
             'tcp_command_world_m': self.command_tcp.tolist(),
+            'tcp_reference_lag_m': float(np.linalg.norm(tcp-self.command_tcp)),
             'tcp_goal_world_m': np.asarray(goal, dtype=float).tolist(),
             'tcp_goal_error_m': float(np.linalg.norm(tcp-goal)),
             'command_goal_error_m': float(np.linalg.norm(self.command_tcp-goal)),
@@ -370,13 +476,16 @@ class BottleLesson(lesson04['HoverLesson']):
             if m['tilt_degrees'] > 20:
                 raise RuntimeError('瓶子倾倒/倾斜超过20度')
             if self.elapsed > 100 or self.phase_time > 22:
+                self.record_phase_diagnostic(self.phase, tcp, rotation, p, q,
+                                             force=True)
                 self.status, self.detail = 'TimedOut', self.phase+'阶段未按时完成'
                 return
-            if self.phase in ('Hold', 'Transfer', 'Lower'):
-                slip = float(np.linalg.norm(p-tcp-self.relative_reference))
-                self.max_slip_m = max(self.max_slip_m, slip)
-                if slip > 0.015:
-                    raise RuntimeError('物体相对TCP滑移超过1.5cm')
+            if self.phase in ('Close', 'Lift', 'Hold', 'Transfer', 'Lower'):
+                if self.relative_reference is not None:
+                    slip = float(np.linalg.norm(p-tcp-self.relative_reference))
+                    self.max_slip_m = max(self.max_slip_m, slip)
+                    if slip > 0.015:
+                        raise RuntimeError('物体相对TCP滑移超过1.5cm')
                 if self.phase in ('Hold', 'Transfer') and m['lift_m'] < LIFT_HEIGHT_M*0.65:
                     raise RuntimeError('机械臂已抬起，但瓶子未保持抬升')
 
@@ -390,17 +499,50 @@ class BottleLesson(lesson04['HoverLesson']):
             elif self.phase == 'Approach':
                 self.set_tcp(self.grasp_tcp, dt)
                 if self.reached(tcp, rotation, self.grasp_tcp, dt):
-                    self.grip(0.)
+                    self.last_finger_position = m['finger_position_m']
+                    self.finger_stable_seconds = 0.0
                     self.transition('Close')
             elif self.phase == 'Close':
-                if self.phase_time >= 2.:
-                    if m['finger_position_m'] > OPEN_POSITION_M-0.004:
-                        raise RuntimeError('夹爪未实际合拢，不能开始抬升')
-                    if m['finger_position_m'] < 0.003:
-                        raise RuntimeError('夹爪空合，未夹住预期瓶身')
+                close_position_error = float(np.linalg.norm(tcp-self.grasp_tcp))
+                close_orientation_error = float(lesson04['angle_error'](
+                    rotation, self.target_r))
+                if close_position_error > 0.012 or close_orientation_error > np.deg2rad(5):
+                    raise RuntimeError(
+                        '闭爪期间TCP偏离抓取位姿：'
+                        f'位置误差{close_position_error*1000:.1f}mm，'
+                        f'姿态误差{np.rad2deg(close_orientation_error):.1f}度')
+                finger_position = m['finger_position_m']
+                close_target = max(0.0, OPEN_POSITION_M-GRIP_CLOSE_SPEED_M_S*self.phase_time)
+                self.grip(close_target)
+                stopped_against_object = (
+                    close_target < finger_position-0.001
+                    and abs(finger_position-self.last_finger_position) < 0.0002)
+                self.finger_stable_seconds = (
+                    self.finger_stable_seconds+dt if stopped_against_object else 0.0)
+                self.last_finger_position = finger_position
+                expected = EXPECTED_MIDBODY_GRIPPER_POSITION_M
+                valid_contact_range = (
+                    expected-GRIP_CONTACT_POSITION_TOLERANCE_M
+                    <= finger_position
+                    <= expected+GRIP_CONTACT_POSITION_TOLERANCE_M)
+                if self.finger_stable_seconds >= GRIP_CONTACT_STABLE_S and valid_contact_range:
+                    self.grasp_contact_confirmed = True
+                    self.grip_hold_position = max(0.0, finger_position-GRIP_HOLD_PRELOAD_M)
+                    self.grip(self.grip_hold_position)
+                    self.relative_reference = p-tcp
+                    # Lift starts from the measured, stable grasp pose so any
+                    # sub-centimeter closure settling is not turned into a jump.
+                    self.grasp_tcp = tcp.copy()
+                    self.lift_tcp = self.grasp_tcp+[0., 0., LIFT_HEIGHT_M]
                     self.transition('Lift')
+                elif self.phase_time >= GRIP_CLOSE_TIMEOUT_S:
+                    raise RuntimeError(
+                        '闭爪未在瓶身中部开度范围内稳定接触：'
+                        f'finger={finger_position:.4f}m，'
+                        f'expected≈{expected:.4f}m，'
+                        f'stable={self.finger_stable_seconds:.3f}s')
             elif self.phase == 'Lift':
-                self.set_tcp(self.lift_tcp, dt)
+                self.set_tcp(self.lift_tcp, dt, tcp)
                 if self.reached(tcp, rotation, self.lift_tcp, dt):
                     if m['lift_m'] < LIFT_HEIGHT_M*0.65:
                         raise RuntimeError('抬升失败：瓶子没有随夹爪升高')
@@ -467,21 +609,32 @@ class BottleLesson(lesson04['HoverLesson']):
             self.record_phase_diagnostic(phase_at_tick, tcp, rotation, p, q)
             self.apply_arm(dt)
         except Exception as exc:
+            try:
+                self.record_phase_diagnostic(self.phase, tcp, rotation, p, q,
+                                             force=True)
+            except Exception:
+                pass
             self.status, self.detail = 'Failed', str(exc)
 
     def report(self):
         result = {'status': self.status, 'phase': self.phase, 'detail': self.detail,
                   'elapsed_seconds': self.elapsed, 'start_position_m': self.start_p.tolist(),
                   'place_target_m': self.place_body.tolist(), 'pick_verified': self.pick_verified,
+                  'grasp_contact_confirmed': self.grasp_contact_confirmed,
                   'release_commanded': self.release_commanded, 'max_lift_m': self.max_lift_m,
                   'max_hold_transport_slip_m': self.max_slip_m, 'metrics': self.metrics,
                   'phases': self.phase_trace, 'phase_diagnostics': self.phase_diagnostics,
+                  'arm_tracking_failure': self.arm_tracking_failure,
                   'configuration': {
-                      'object': BODY_PATH, 'mass_kg': self.mass_kg, 'mass_source': 'official_asset_not_measured',
+                      'object': BODY_PATH, 'mass_kg': self.mass_kg, 'mass_source': 'simulation_baseline_560g_not_measured',
+                      'object_kinematic': False,
                       'grasp_height_m': GRASP_HEIGHT_M, 'lift_height_m': LIFT_HEIGHT_M,
                       'approach': 'horizontal_midbody_from_world_minus_x', 'grasp_x_offset_m': GRASP_X_OFFSET_M,
                       'approach_yaw_degrees': APPROACH_YAW_DEGREES,
                       'gripper_geometry': 'custom_lengthened_fingers', 'finger_length_scale': FINGER_LENGTH_SCALE,
+                      'gripper_close_speed_m_s': GRIP_CLOSE_SPEED_M_S,
+                      'expected_midbody_gripper_position_m': EXPECTED_MIDBODY_GRIPPER_POSITION_M,
+                      'gripper_hold_preload_m': GRIP_HOLD_PRELOAD_M,
                       'tcp_extension_m': TCP_EXTENSION_M, 'torsional_contact_patch_radius_m': 0.01,
                       'collision_proxy': 'shrinkwrapped_convex_decomposition_bottle_and_fingers',
                       'arm_control': 'lula_ik_continuous_reference_and_rate_limited_joint_targets',
@@ -505,6 +658,32 @@ class BottleLesson(lesson04['HoverLesson']):
         if omni.usd.get_context().get_stage() == self.stage and self.robot.handles_initialized:
             try:
                 result['final_position_m'] = self.bottle.get_world_pose()[0].tolist()
+                tcp, rotation = self.actual_pose()
+                phase_goal = {
+                    'PreGrasp': self.target_tcp,
+                    'Align': self.approach_start,
+                    'Approach': self.grasp_tcp,
+                    'Close': self.grasp_tcp,
+                    'Lift': self.lift_tcp,
+                    'Transfer': getattr(self, 'transfer_tcp', None),
+                    'Lower': getattr(self, 'lower_goal', None),
+                    'Release': getattr(self, 'place_tcp', None),
+                    'RetreatClear': getattr(self, 'retreat_clear_tcp', None),
+                }.get(self.phase)
+                joints = self.robot.get_joint_positions()[self.arm_indices]
+                result['final_control_state'] = {
+                    'tcp_actual_world_m': tcp.tolist(),
+                    'tcp_command_world_m': self.command_tcp.tolist(),
+                    'tcp_goal_world_m': (None if phase_goal is None
+                                         else np.asarray(phase_goal).tolist()),
+                    'tcp_goal_error_m': (None if phase_goal is None else float(
+                        np.linalg.norm(tcp-phase_goal))),
+                    'orientation_error_degrees': float(np.rad2deg(
+                        lesson04['angle_error'](rotation, self.target_r))),
+                    'joint_actual_rad': joints.tolist(),
+                    'joint_reference_rad': self.arm_command.tolist(),
+                    'joint_tracking_error_rad': (self.arm_command-joints).tolist(),
+                }
             except Exception:
                 pass
         save_result(result)

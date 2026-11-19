@@ -16,7 +16,7 @@ import omni.replicator.core as rep
 import omni.timeline
 import omni.usd
 from PIL import Image
-from pxr import Gf, Usd, UsdGeom
+from pxr import Gf, Usd, UsdGeom, UsdPhysics
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -41,11 +41,13 @@ RANGES = {
 }
 
 BOTTLE_WRAPPER_PATH = "/World/PracticeBottle"
-BOTTLE_MESH_PATH = "/World/PracticeBottle/Body/_06_mustard_bottle"
+BOTTLE_PRIM_PATH = "/World/PracticeBottle/bottle014"
+LID_PRIM_PATH = BOTTLE_PRIM_PATH + "/lid"
 CAMERA_PATH = "/World/Franka/panda_hand/WristCamera"
 TABLE_PATH = "/World/DeskTop"
 AMBIENT_LIGHT_PATH = "/World/AmbientLight"
 DESK_LIGHT_PATH = "/World/DeskLight"
+DEBUG_GROUP_PATH = "/World/Debug"
 BASELINE_BOTTLE_XY_M = (0.18, -0.20)
 
 
@@ -91,8 +93,15 @@ def _extract_mask(segmentation, target_path):
         values = values[..., 0]
     labels = segmentation.get("info", {}).get("idToLabels", {})
     ids = [int(key) for key, value in labels.items()
-           if isinstance(value, str) and value == target_path]
-    return np.isin(values, ids), ids
+           if isinstance(value, str)
+           and (value == target_path or value.startswith(target_path + "/"))]
+    body_ids = [int(key) for key, value in labels.items()
+                if isinstance(value, str)
+                and (value == target_path + "/body" or value.startswith(target_path + "/body/"))]
+    lid_ids = [int(key) for key, value in labels.items()
+               if isinstance(value, str)
+               and (value == target_path + "/lid" or value.startswith(target_path + "/lid/"))]
+    return np.isin(values, ids), ids, np.isin(values, body_ids), np.isin(values, lid_ids)
 
 
 def _yolo_polygon(mask):
@@ -148,8 +157,9 @@ def _prepare_output_dirs(output_dir):
         for folder in ("images", "labels", "masks", "depth"):
             (output_dir / folder / split).mkdir(parents=True, exist_ok=True)
     (output_dir / "metadata").mkdir(parents=True, exist_ok=True)
+    data_root = output_dir.resolve().as_posix()
     (output_dir / "data.yaml").write_text(
-        "path: .\ntrain: images/train\nval: images/val\nnames:\n  0: bottle\n",
+        f"path: '{data_root}'\ntrain: images/train\nval: images/val\nnames:\n  0: bottle\n",
         encoding="utf-8",
     )
 
@@ -165,8 +175,8 @@ async def generate_dataset():
     await omni.kit.app.get_app().next_update_async()
 
     stage = omni.usd.get_context().get_stage()
-    required = (BOTTLE_WRAPPER_PATH, BOTTLE_MESH_PATH, CAMERA_PATH, TABLE_PATH,
-                AMBIENT_LIGHT_PATH, DESK_LIGHT_PATH)
+    required = (BOTTLE_WRAPPER_PATH, BOTTLE_PRIM_PATH, LID_PRIM_PATH, CAMERA_PATH, TABLE_PATH,
+                AMBIENT_LIGHT_PATH, DESK_LIGHT_PATH, DEBUG_GROUP_PATH)
     missing = [path for path in required if not stage.GetPrimAtPath(path)]
     if missing:
         raise RuntimeError("场景缺少必要 Prim: " + ", ".join(missing))
@@ -178,6 +188,12 @@ async def generate_dataset():
     desk_attr = stage.GetPrimAtPath(DESK_LIGHT_PATH).GetAttribute("inputs:intensity")
     original_ambient = ambient_attr.Get()
     original_desk = desk_attr.Get()
+    debug_imageable = UsdGeom.Imageable(stage.GetPrimAtPath(DEBUG_GROUP_PATH))
+    debug_visibility_attr = debug_imageable.GetVisibilityAttr()
+    original_debug_visibility = debug_visibility_attr.Get()
+    lid_body = UsdPhysics.RigidBodyAPI(stage.GetPrimAtPath(LID_PRIM_PATH))
+    lid_kinematic_attr = lid_body.GetKinematicEnabledAttr()
+    original_lid_kinematic = lid_kinematic_attr.Get()
 
     table_data = __import__("runpy").run_path(str(SCRIPT_DIR / "04_hover_above_cube.py"))
     table = table_data["ExistingCuboid"](stage, TABLE_PATH)
@@ -194,7 +210,7 @@ async def generate_dataset():
     render_product = rep.create.render_product(CAMERA_PATH, IMAGE_SIZE)
     rgb_annotator = rep.AnnotatorRegistry.get_annotator("rgb")
     depth_annotator = rep.AnnotatorRegistry.get_annotator("distance_to_image_plane")
-    mask_annotator = rep.AnnotatorRegistry.get_annotator("instance_segmentation")
+    mask_annotator = rep.AnnotatorRegistry.get_annotator("instance_id_segmentation")
     annotators = (rgb_annotator, depth_annotator, mask_annotator)
     for annotator in annotators:
         annotator.attach([render_product])
@@ -204,6 +220,9 @@ async def generate_dataset():
     attempts = 0
     rejected = []
     try:
+        with Usd.EditContext(stage, stage.GetSessionLayer()):
+            debug_visibility_attr.Set(UsdGeom.Tokens.invisible)
+            lid_kinematic_attr.Set(True)
         with manifest_path.open("w", encoding="utf-8") as manifest:
             while accepted < TARGET_SAMPLES and attempts < TARGET_SAMPLES * MAX_ATTEMPTS_PER_SAMPLE:
                 sample_seed = int(rng.integers(0, np.iinfo(np.uint32).max, dtype=np.uint32))
@@ -214,17 +233,27 @@ async def generate_dataset():
                     stage, parameters, float(original_translation[2]), table_center, safe_xy
                 )
                 await omni.kit.app.get_app().next_update_async()
-                await rep.orchestrator.step_async(rt_subframes=4)
+                await rep.orchestrator.step_async(rt_subframes=1, pause_timeline=True)
                 attempts += 1
 
                 rgb = np.asarray(rgb_annotator.get_data())[:, :, :3].astype(np.uint8)
                 depth = np.asarray(depth_annotator.get_data(), dtype=np.float32)
-                mask, instance_ids = _extract_mask(mask_annotator.get_data(), BOTTLE_MESH_PATH)
+                mask, instance_ids, body_mask, lid_mask = _extract_mask(
+                    mask_annotator.get_data(), BOTTLE_PRIM_PATH
+                )
                 if rgb.shape != (height, width, 3) or depth.shape != (height, width):
                     rejected.append({"attempt": attempts, "reason": "unexpected image shape"})
                     continue
                 if not mask.any():
                     rejected.append({"attempt": attempts, "reason": "empty bottle mask"})
+                    continue
+                if not body_mask.any() or not lid_mask.any():
+                    rejected.append({
+                        "attempt": attempts,
+                        "reason": "bottle body or lid missing from mask",
+                        "body_mask_pixels": int(body_mask.sum()),
+                        "lid_mask_pixels": int(lid_mask.sum()),
+                    })
                     continue
                 ys, xs = np.where(mask)
                 bbox_width = int(xs.max() - xs.min() + 1)
@@ -275,7 +304,10 @@ async def generate_dataset():
                     "parameters": parameters,
                     "mask_pixel_count": int(mask.sum()),
                     "mask_pixel_ratio": float(mask.mean()),
+                    "body_mask_pixel_count": int(body_mask.sum()),
+                    "lid_mask_pixel_count": int(lid_mask.sum()),
                     "instance_ids": instance_ids,
+                    "mask_target_prim_prefix": BOTTLE_PRIM_PATH,
                     "camera": camera_info,
                     "files": {
                         "image": f"images/{split}/{sample_id}.png",
@@ -300,6 +332,8 @@ async def generate_dataset():
             translate_op.Set(original_translation)
             ambient_attr.Set(original_ambient)
             desk_attr.Set(original_desk)
+            debug_visibility_attr.Set(original_debug_visibility)
+            lid_kinematic_attr.Set(original_lid_kinematic)
 
     summary = {
         "status": "completed" if accepted == TARGET_SAMPLES else "incomplete",

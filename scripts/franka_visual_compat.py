@@ -1,16 +1,17 @@
-"""当前 Isaac Sim 5.1 会话中观察到的 Franka 实例几何显示兼容处理。
+"""Franka 实例几何显示兼容处理。
 
-现象：物理/ USD 连杆位置正确，画面中手掌和手指却断开或不显示。
-实测将这三处 geometry 取消实例化后恢复。这里只确认该绕行办法有效，
-未证明底层渲染器的具体缺陷。改在 session layer，不保存或改写官方资产。
+现象：不同 Isaac Sim/RTX 组合下，实例化的 articulation link geometry
+可能不被视口正常绘制。为保证连杆、手掌和夹爪使用一致的渲染路径，
+在 session layer 取消这些 geometry prim 的实例化；不保存或改写官方资产。
 """
 from pxr import Usd
 import omni.timeline
 
 
 def prepare_franka_visuals(stage, robot_path='/World/Franka'):
+    link_names = tuple(f'panda_link{i}' for i in range(8))
     paths = [f'{robot_path}/{name}/geometry'
-             for name in ('panda_hand', 'panda_leftfinger', 'panda_rightfinger')]
+             for name in (*link_names, 'panda_hand', 'panda_leftfinger', 'panda_rightfinger')]
     pending = [path for path in paths if stage.GetPrimAtPath(path)
                and stage.GetPrimAtPath(path).IsInstance()]
     if not pending:
@@ -30,5 +31,5 @@ def prepare_franka_visuals(stage, robot_path='/World/Franka'):
                 prim.SetInstanceable(False)
                 changed.append(str(prim.GetPath()))
     if changed:
-        print('[显示兼容] 会话层取消手掌/手指几何实例化；关节和模型尺寸不变。')
+        print(f'[显示兼容] 会话层取消 {len(changed)} 个机器人连杆/末端几何实例化；关节和模型尺寸不变。')
     return changed
