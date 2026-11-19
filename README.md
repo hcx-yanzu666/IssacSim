@@ -33,29 +33,29 @@
 from pathlib import Path
 import runpy
 
-PROJECT = Path(r"D:\qtproject\IssacSim Pj")
-runpy.run_path(str(PROJECT / "scripts/12_visual_bottle_pick.py"), run_name="__main__")
+PROJECT = Path(r"D:\qtproject\IssacSim")
+entry = runpy.run_path(str(PROJECT / "apps/run_pick.py"))
+task = entry["start"](
+    weights=str(PROJECT / "outputs/yolo_train/multiview500/weights/best.pt"),
+    place_xy_world_m=[0.18, 0.20],
+    device="cpu",
+)
 ```
 
-脚本自动复位、采集当前图像、定位并执行抓放；任务结束后暂停。结果位于 `outputs/lesson09_latest.json`，入口摘要为 `outputs/visual_pick_runner_latest.json`。`omni.*`、PhysX、Lula 和 Replicator 来自 Isaac 环境，不能直接用普通系统 Python 启动这些编辑器脚本。
+脚本自动复位、采集当前图像、调用 YOLO、定位并执行抓放；任务结束后暂停。每轮记录位于 `outputs/yolo_pick/`，最新摘要为 `outputs/yolo_pick_latest.json`。上例显式选择 multiview500 模型；模型权重需本地准备。`omni.*`、PhysX、Lula 和 Replicator 来自 Isaac 环境，不能直接用普通系统 Python 启动这些编辑器脚本。
 
-| 入口 | 用途 |
-| --- | --- |
-| `scripts/09_pick_and_place_bottle.py` | 已知坐标或外部估计坐标的瓶身抓放控制器 |
-| `scripts/10_ros2_pick_task.py` | ROS2 常驻任务接口，调用视觉抓放 |
-| `scripts/11_register_bottle_translation.py` | 从已采集 RGB-D/Mask 估计瓶子平移 |
-| `scripts/12_visual_bottle_pick.py` | 单次完整视觉抓放 |
-| `scripts/13_single_domain_randomization.py` | 单轮位置/灯光/深度噪声扰动，保存 HDF5/JSON |
-| `scripts/14_generate_bottle_dataset.py` | 不抓取，自动生成分割数据集 |
-| `scripts/15_fixed_pose_waterbottle_grasp.py` | 固定坐标瓶颈夹持、抬升保持基线 |
-| `scripts/16_repeat_fixed_pose_waterbottle_grasp.py` | 固定抓取重复测试及汇总 |
-| `scripts/17_verify_yolo_baseline.py` | 独立训练环境验证已有 YOLO 分割权重 |
-| `scripts/18_compare_yolo_pose.py` | 离线对照 YOLO/仿真 Mask 的定位结果 |
-| `scripts/19_yolo_visual_pick.py` | 实时拍摄、外部 YOLO 推理、深度定位及完整抓放 |
-| `scripts/yolo_mask_inference.py` | 外部推理进程、采集编号与输入输出哈希校验 |
-| `scripts/franka_visual_compat.py` | Franka 连杆与夹爪实例几何显示兼容 |
+| 日常入口 | 用途 | 运行环境 |
+| --- | --- | --- |
+| `apps/run_pick.py` | YOLO 单次视觉抓放 | Isaac Script Editor |
+| `apps/collect_dataset.py` | 自动采集随机化数据集，不抓取 | Isaac Script Editor |
+| `apps/start_ros2_bridge.py` | 常驻 ROS2 接口，默认仿真 Mask | Isaac Script Editor |
+| `apps/run_randomized_trial.py` | 单轮随机化抓取，默认仿真 Mask，保存 HDF5/JSON | Isaac Script Editor |
+| `tool/dataset_studio/panel.py` | 双视口采集面板 | Isaac Script Editor |
+| `perception/evaluate_model.py` | 已有 YOLO 模型验证 | 项目 `.venv` |
+| `perception/compare_pose.py` | 保存帧的 YOLO/仿真 Mask 定位对照 | 项目 `.venv` |
 
-第 1～8 课为历史学习与资产导入脚本，包含不同对象/场景假设，不应直接套用到当前水瓶。学习材料见 [学习拼图](学习拼图.md) 与 [历史课程记录](docs/lesson_history.md)。当前版本的参数和结果以 [验证记录](docs/current_validation.md) 为准。
+目录职责、调用链和新旧入口对照见 [代码目录与运行指南](docs/code_layout.md)。原 `scripts/` 编号文件保留为兼容入口，修改业务代码请进入新目录。
+
 
 ## 已验证结果
 
@@ -72,7 +72,7 @@ runpy.run_path(str(PROJECT / "scripts/12_visual_bottle_pick.py"), run_name="__ma
 
 ## ROS2 任务输入
 
-在 Isaac 中运行第 10 课入口，Ubuntu ROS2 终端与 Isaac 配置相同的 Domain ID 和可互通的 DDS 环境后：
+在 Isaac 中运行 `apps/start_ros2_bridge.py`，Ubuntu ROS2 终端与 Isaac 配置相同的 Domain ID 和可互通的 DDS 环境后：
 
 ```bash
 ros2 topic echo /pick_status
@@ -91,6 +91,6 @@ rosbag2 记录/回放的是 ROS 消息，当前没有将关节状态回放驱动
 
 ## 数据与依赖
 
-第 14 课默认采集 50 个样本，可在脚本顶部调整种子、数量、位置与灯光范围。输出 `images/`、`labels/`、`masks/`、`depth/`、`metadata/`、`samples.jsonl` 和 `data.yaml`。采集后不需要机械臂执行动作。
+通过 `apps/collect_dataset.py` 或 Dataset Studio 面板采集数据。`configs/dataset_randomization.json` 配置种子、数量、瓶子偏移、灯光方位角/仰角和强度，以及独立采集相机的方位角/俯视角/距离。左侧显示采集相机，右侧显示固定场景视角，原抓取手眼相机保持独立。输出 `images/`、`labels/`、`masks/`、`depth/`、`metadata/`、`samples.jsonl`、`data.yaml` 和可自动播放的 `gallery.html`。采集后不需要机械臂执行动作。操作与录屏方式见 [域随机化采集面板](docs/dataset_studio.md)。
 
-视觉与采集使用 NumPy、Pillow、OpenCV；第 13 课额外使用 h5py。请在与 Isaac 配套的 Python 环境中检查依赖。YOLO 训练使用独立环境，当前仓库不附带训练权重。
+视觉与采集使用 NumPy、Pillow、OpenCV；单轮随机化报告额外使用 h5py。请在与 Isaac 配套的 Python 环境中检查依赖。YOLO 训练使用独立环境，当前仓库不附带训练权重。

@@ -7,7 +7,7 @@
 ```python
 import runpy
 runpy.run_path(
-    r"D:\qtproject\IssacSim Pj\scripts\19_yolo_visual_pick.py",
+    r"D:\qtproject\IssacSim\apps\run_pick.py",
     run_name="__main__",
 )
 ```
@@ -18,7 +18,7 @@ runpy.run_path(
 
 ```python
 import runpy
-entry = runpy.run_path(r"D:\qtproject\IssacSim Pj\scripts\19_yolo_visual_pick.py")
+entry = runpy.run_path(r"D:\qtproject\IssacSim\apps\run_pick.py")
 task = entry["start"](place_xy_world_m=[0.18, 0.20], device="cpu")
 ```
 
@@ -93,6 +93,39 @@ task = entry["start"](place_xy_world_m=[0.18, 0.20], device="cpu")
 这是修改后的单轮通过，不是批量成功率。前两次失败运行不删除，也不混入修改后版本的成功率统计。
 
 后续运行 `20261119_132911_4956fff2` 在 `RetreatClear` 阶段超时，结束时 XY 放置误差约 5.13 mm，但整轮必须记为未通过。因此当前已有完整成功样例，重复运行的撤离稳定性仍需排查。仓库同时保存成功报告和各轮结果摘要，不能据此宣称稳定批量成功。
+
+## 多视角500张模型的单轮验证（2026-11-19）
+
+新训练结果已复制到本项目 `outputs/yolo_train/multiview500/`，与原始训练输出的 best.pt SHA256 一致。本次通过 `start(weights=..., device='cpu')` 显式选择新模型，未修改默认模型。
+
+首次运行 `20261119_154947_9ab69417` 识别成功，但IK预检查失败：首次显示兼容处理取消连杆几何实例化，使已经由Replicator初始化的物理视图失效，随后报 `NoneType.link_names`。入口12已将兼容处理前移到Stop之后、采集之前，并等待一次Kit更新，避免在IK阶段改变实例结构。
+
+调整后运行 `20261119_155105_6f8645c9` 完成识别、定位、IK、抓取、搬运、放置和撤离，最终 **Failed / Settle**，原因是放置XY误差19.92 mm超过原有15 mm门限。
+
+| 指标 | 结果 |
+|---|---:|
+| YOLO瓶子置信度 | 0.7742 |
+| YOLO推理耗时（CPU，不含进程启动） | 59.67 ms |
+| 视觉XY定位误差 | 0.56 mm |
+| 视觉Z定位误差 | +9.23 mm（执行仍用配置抓取高度） |
+| 最大抬升 | 120.80 mm |
+| 最大夹持/搬运滑移 | 4.48 mm |
+| 最终XY放置误差 | 19.92 mm |
+| 仿真执行耗时 | 43.66 s |
+| 总墙钟耗时 | 390.70 s |
+
+诊断显示撤离开始时瓶体XY约为(0.17463,0.19690)m，撤离末约为(0.16017,0.20173)m，撤离期间仍发生横向位移。应进一步检查松爪间隙、残余接触和撤离轨迹，当前证据不能单独证明某一种接触原因。不能将本次描述为完整链路验收通过，也不能从单轮判断批量成功率。
+
+复现新模型验证：
+
+```python
+import runpy
+entry = runpy.run_path(r"D:\qtproject\IssacSim\apps\run_pick.py")
+task = entry["start"](
+    weights=r"D:\qtproject\IssacSim\outputs\yolo_train\multiview500\weights\best.pt",
+    device="cpu",
+)
+```
 
 可随仓库查看的记录：[完整成功报告](../examples/reports/yolo_pick_success.json)、[各轮联调摘要](../examples/reports/yolo_pick_runs_summary.json)、[后续撤离超时报告](../examples/reports/yolo_pick_retreat_timeout.json)。
 

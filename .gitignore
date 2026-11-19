@@ -24,3 +24,16 @@ Desktop.ini
 venv/
 *.pt
 *.onnx
+
+# Local teaching materials
+/examples/tutorials/
+/docs/lesson_history.md
+/学习拼图.md
+/scripts/01_inspect_scene.py
+/scripts/02_joint_control_todo.py
+/scripts/03_gripper_motion.py
+/scripts/05_pick_cube.py
+/scripts/06_pick_and_place.py
+/scripts/07_repeat_pick_and_place.py
+/scripts/08_import_bottle.py
+/scripts/08_repair_bottle_transform.py

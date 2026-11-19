@@ -427,6 +427,12 @@ def "World"
                 float state:angular:physics:position = 0.6874924
                 float state:angular:physics:velocity = 0.0002864377
             }
+
+            over "geometry" (
+                instanceable = false
+            )
+            {
+            }
         }
 
         over "panda_link1"
@@ -440,6 +446,12 @@ def "World"
             {
                 float state:angular:physics:position = -32.576504
                 float state:angular:physics:velocity = -0.40950462
+            }
+
+            over "geometry" (
+                instanceable = false
+            )
+            {
             }
         }
 
@@ -455,6 +467,12 @@ def "World"
                 float state:angular:physics:position = 0.000006835534
                 float state:angular:physics:velocity = -0.00003436606
             }
+
+            over "geometry" (
+                instanceable = false
+            )
+            {
+            }
         }
 
         over "panda_link3"
@@ -468,6 +486,12 @@ def "World"
             {
                 float state:angular:physics:position = -160.72287
                 float state:angular:physics:velocity = -1.3926361
+            }
+
+            over "geometry" (
+                instanceable = false
+            )
+            {
             }
         }
 
@@ -483,6 +507,12 @@ def "World"
                 float state:angular:physics:position = 0.0007657351
                 float state:angular:physics:velocity = -0.003825676
             }
+
+            over "geometry" (
+                instanceable = false
+            )
+            {
+            }
         }
 
         over "panda_link5"
@@ -496,6 +526,12 @@ def "World"
             {
                 float state:angular:physics:position = 173.86893
                 float state:angular:physics:velocity = 0.6922865
+            }
+
+            over "geometry" (
+                instanceable = false
+            )
+            {
             }
         }
 
@@ -511,6 +547,12 @@ def "World"
                 float state:angular:physics:position = 42.454617
                 float state:angular:physics:velocity = 0.007626171
             }
+
+            over "geometry" (
+                instanceable = false
+            )
+            {
+            }
         }
 
         over "panda_link7"
@@ -519,6 +561,12 @@ def "World"
             vector3f physics:velocity = (-0.0048569776, -0.000051096045, -0.0070873243)
             quatf xformOp:orient = (-0.14283732, 0.86091334, -0.32847384, 0.36129034)
             float3 xformOp:translate = (0.3137403, 0.0037635693, 0.5344043)
+
+            over "geometry" (
+                instanceable = false
+            )
+            {
+            }
         }
     }
 

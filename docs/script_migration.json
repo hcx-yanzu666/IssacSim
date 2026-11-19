@@ -1,0 +1,18 @@
+{
+  "02_read_joint_state.py": "src/bottle_sim/robot.py",
+  "04_hover_above_cube.py": "src/bottle_sim/motion.py",
+  "09_pick_and_place_bottle.py": "src/bottle_sim/pick_task.py",
+  "10_ros2_pick_task.py": "src/bottle_sim/ros2_bridge.py",
+  "11_register_bottle_translation.py": "src/bottle_sim/pose_estimation.py",
+  "12_visual_bottle_pick.py": "src/bottle_sim/visual_pick.py",
+  "13_single_domain_randomization.py": "src/bottle_sim/randomized_trial.py",
+  "14_generate_bottle_dataset.py": "src/bottle_sim/dataset.py",
+  "15_fixed_pose_waterbottle_grasp.py": "tools/diagnostics/fixed_pose_grasp.py",
+  "16_repeat_fixed_pose_waterbottle_grasp.py": "tools/diagnostics/repeat_fixed_pose_grasp.py",
+  "17_verify_yolo_baseline.py": "perception/evaluate_model.py",
+  "18_compare_yolo_pose.py": "perception/compare_pose.py",
+  "19_yolo_visual_pick.py": "apps/run_pick.py",
+  "dataset_randomization.py": "src/bottle_sim/randomization.py",
+  "franka_visual_compat.py": "src/bottle_sim/visual_compat.py",
+  "yolo_mask_inference.py": "perception/yolo_worker.py"
+}

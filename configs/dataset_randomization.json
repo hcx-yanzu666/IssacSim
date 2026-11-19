@@ -1,0 +1,50 @@
+{
+  "master_seed": 20261120,
+  "target_samples": 12,
+  "train_fraction": 0.8,
+  "demo_hold_seconds": 2.0,
+  "render_subframes": 4,
+  "max_attempts_per_sample": 5,
+  "light_distance_m": 1.6,
+  "light_target_height_m": 0.14,
+  "camera_target_height_m": 0.145,
+  "mute_environment_light": true,
+  "ranges": {
+    "bottle_dx_m": [
+      -0.08,
+      0.08
+    ],
+    "bottle_dy_m": [
+      -0.06,
+      0.06
+    ],
+    "ambient_intensity": [
+      150.0,
+      550.0
+    ],
+    "desk_intensity": [
+      600.0,
+      4500.0
+    ],
+    "light_azimuth_deg": [
+      -170.0,
+      20.0
+    ],
+    "light_elevation_deg": [
+      25.0,
+      80.0
+    ],
+    "camera_azimuth_deg": [
+      -115.0,
+      -15.0
+    ],
+    "camera_elevation_deg": [
+      15.0,
+      60.0
+    ],
+    "camera_distance_m": [
+      0.55,
+      0.95
+    ]
+  }
+}

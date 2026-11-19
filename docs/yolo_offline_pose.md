@@ -8,10 +8,10 @@
 
 ## 运行
 
-在 `D:\qtproject\IssacSim Pj` 的 PowerShell 中：
+在 `D:\qtproject\IssacSim` 的 PowerShell 中：
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\18_compare_yolo_pose.py
+.\.venv\Scripts\python.exe perception\compare_pose.py
 ```
 
 默认读取 `outputs/wrist_rgbd_01` 和 `outputs/yolo_train/baseline50_run2/weights/best.pt`。可用 `--capture`、`--weights`、`--template` 指定其他输入。每次创建独立的输出目录，不覆盖原图、Mask 或历史定位报告。
@@ -23,8 +23,8 @@ import runpy
 from pathlib import Path
 import omni.usd
 
-root = Path(r"D:\qtproject\IssacSim Pj")
-module = runpy.run_path(str(root / "scripts/18_compare_yolo_pose.py"))
+root = Path(r"D:\qtproject\IssacSim")
+module = runpy.run_path(str(root / "perception/compare_pose.py"))
 module["export_template"](
     omni.usd.get_context().get_stage(),
     root / "outputs/perception_templates/bottle014_body.npz",
