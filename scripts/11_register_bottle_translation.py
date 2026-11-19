@@ -11,14 +11,6 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw
-import omni.usd
-from pxr import Gf, Usd, UsdGeom
-from isaacsim.core.utils.rotations import rot_matrix_to_quat
-from isaacsim.robot_motion.motion_generation import (
-    ArticulationKinematicsSolver,
-    LulaKinematicsSolver,
-    interface_config_loader,
-)
 
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "outputs" / "wrist_rgbd_01"
@@ -95,6 +87,12 @@ def fit_translation_icp(observed_world, model_body, body_rotation, camera_forwar
 
 def precheck_grasp_ik(body_translation):
     """Check the lesson's approach/grasp TCP poses without commanding motion."""
+    import omni.usd
+    from pxr import UsdGeom
+    from isaacsim.core.utils.rotations import rot_matrix_to_quat
+    from isaacsim.robot_motion.motion_generation import (
+        ArticulationKinematicsSolver, LulaKinematicsSolver, interface_config_loader,
+    )
     script_dir = Path(__file__).resolve().parent
     lesson04 = runpy.run_path(str(script_dir / "04_hover_above_cube.py"))
     lesson02 = runpy.run_path(str(script_dir / "02_read_joint_state.py"))
@@ -121,14 +119,18 @@ def precheck_grasp_ik(body_translation):
     )
 
     # Match the existing lesson's fixed side-approach grasp orientation.
-    desired_hand_rotation = np.array([[0., 0., 1.], [0., 1., 0.], [-1., 0., 0.]])
+    pick_config = runpy.run_path(str(script_dir / '09_pick_and_place_bottle.py'))
+    yaw = np.deg2rad(pick_config['APPROACH_YAW_DEGREES'])
+    c, s = np.cos(yaw), np.sin(yaw)
+    desired_hand_rotation = np.array([[0., -s, c], [0., c, s], [-1., 0., 0.]])
     target_rotation = desired_hand_rotation @ hand_to_gripper_rotation
     target_quaternion = rot_matrix_to_quat(target_rotation)
     table = lesson04["ExistingCuboid"](stage, "/World/DeskTop")
     table_z = float(table.center[2] + table.size[2] / 2.)
     grasp_tcp = np.asarray(body_translation, dtype=float).copy()
-    grasp_tcp[2] = table_z + 0.10
-    approach_tcp = grasp_tcp + np.array([-0.10, 0., 0.])
+    grasp_tcp[0] += pick_config['GRASP_X_OFFSET_M']
+    grasp_tcp[2] = table_z + pick_config['GRASP_HEIGHT_M']
+    approach_tcp = grasp_tcp - 0.10 * np.array([c, s, 0.])
 
     checks = []
     warm_start = np.asarray(arm_q, dtype=float)
@@ -158,7 +160,10 @@ def precheck_grasp_ik(body_translation):
     }
 
 
-def main(data_dir=DATA_DIR, depth_path=None):
+def main(data_dir=DATA_DIR, depth_path=None, mask_path=None, fixed_body_rotation=None):
+    import omni.usd
+    from pxr import Gf, Usd, UsdGeom
+
     data_dir = Path(data_dir)
     depth_path = Path(depth_path) if depth_path is not None else data_dir / "depth_m.npy"
     stage = omni.usd.get_context().get_stage()
@@ -168,7 +173,8 @@ def main(data_dir=DATA_DIR, depth_path=None):
     if not body or not mesh or not camera:
         raise RuntimeError("当前场景缺少瓶子 Body、瓶子 Mesh 或 WristCamera")
 
-    mask = np.asarray(Image.open(data_dir / "bottle_mask.png").convert("L")) > 0
+    mask_path = Path(mask_path) if mask_path is not None else data_dir / 'bottle_mask.png'
+    mask = np.asarray(Image.open(mask_path).convert("L")) > 0
     depth = np.load(depth_path).astype(np.float64)
     rgb = np.asarray(Image.open(data_dir / "rgb.png").convert("RGB"))
     with (data_dir / "camera_info.json").open("r", encoding="utf-8") as stream:
@@ -200,19 +206,25 @@ def main(data_dir=DATA_DIR, depth_path=None):
 
     # Fixed-orientation prior for this demonstration; translation is estimated.
     body_rotation = np.asarray([[float(body_world[i][j]) for j in range(3)] for i in range(3)])
+    if fixed_body_rotation is not None:
+        body_rotation = np.asarray(fixed_body_rotation, dtype=np.float64)
+        if body_rotation.shape != (3, 3) or not np.all(np.isfinite(body_rotation)):
+            raise ValueError('Invalid fixed body orientation prior')
     estimated_translation, residuals = fit_translation_icp(
         observed_world, model_body, body_rotation, forward
     )
 
     # Simulation ground truth is used only to report the estimator's error.
-    ground_truth = np.asarray(body_world.ExtractTranslation(), dtype=np.float64)
+    ground_truth = np.asarray(camera_info.get('bottle_body_translation_world_m_evaluation_only')
+        if camera_info.get('schema_version', 1) >= 2 else body_world.ExtractTranslation(), dtype=np.float64)
     error = estimated_translation - ground_truth
     metrics = {
         "estimated_body_translation_world_m": estimated_translation.tolist(),
         "ground_truth_body_translation_world_m_evaluation_only": ground_truth.tolist(),
         "translation_error_m_evaluation_only": float(np.linalg.norm(error)),
         "translation_error_xyz_m_evaluation_only": error.tolist(),
-        "orientation_source": "fixed setup prior from USD; not estimated by this step",
+        "orientation_source": ("explicit fixed orientation prior" if fixed_body_rotation is not None
+                               else "fixed setup prior from USD; not estimated by this step"),
         "translation_estimation": "mask/depth back-projection + known USD mesh point-to-point ICP",
         "observed_depth_points": int(len(observed_world)),
         "model_vertices": int(len(model_body)),
@@ -220,6 +232,8 @@ def main(data_dir=DATA_DIR, depth_path=None):
         "p90_nearest_surface_residual_m": float(np.percentile(residuals, 90)),
         "initial_ray_offset_m": INITIAL_RAY_OFFSET_M,
         "depth_input_file": depth_path.name,
+        "mask_input_file": mask_path.name,
+        "capture_id": camera_info.get('capture_id'),
     }
     metrics["grasp_ik_precheck"] = precheck_grasp_ik(estimated_translation)
     (data_dir / "bottle_pose_estimate.json").write_text(

@@ -224,6 +224,9 @@ class BottleLesson(lesson04['HoverLesson']):
         # mustard-bottle Y-axis convention.
         self.base_center_local = self.points[self.points[:, 2] < self.local_lo[2]+0.002].mean(axis=0)
         r = quat_to_rot_matrix(self.start_q)
+        # Use the initial upright pose to define where the support center
+        # belongs when the final body origin is at the requested position.
+        self.upright_base_offset_world = r @ self.base_center_local
         world_vertical = r @ np.array([0., 0., 1.])
         if abs(float(np.dot(world_vertical, [0., 0., 1.]))) < np.cos(np.deg2rad(5)):
             raise RuntimeError('瓶子初始姿态不是竖直放置，请Stop恢复或修复场景')
@@ -447,6 +450,7 @@ class BottleLesson(lesson04['HoverLesson']):
                 np.abs(self.arm_command-actual_joints))),
             'arm_command_rad': self.arm_command.tolist(),
             'bottle_world_m': bottle_p.tolist(),
+            'bottle_orientation_wxyz': np.asarray(bottle_q).tolist(),
             'bottle_tilt_degrees': metrics['tilt_degrees'],
             'bottle_linear_speed_m_s': metrics['linear_speed_m_s'],
             'bottle_angular_speed_rad_s': metrics['angular_speed_rad_s'],
@@ -560,18 +564,28 @@ class BottleLesson(lesson04['HoverLesson']):
             elif self.phase == 'Transfer':
                 self.set_tcp(self.transfer_tcp, dt)
                 if self.reached(tcp, rotation, self.transfer_tcp, dt):
+                    # Snapshot the placement correction once while held stable.
+                    # Recomputing it from a vibrating/slipping body each physics
+                    # tick turns contact error into a moving XY target during
+                    # descent, which can amplify tilt and further slip.
+                    self.lower_goal = self.place_tcp.copy()
+                    current_base = p + quat_to_rot_matrix(q) @ self.base_center_local
+                    desired_base = self.place_body + self.upright_base_offset_world
+                    self.lower_goal[:2] = tcp[:2]+desired_base[:2]-current_base[:2]
+                    self.lower_support_target_world_m = desired_base.tolist()
                     self.transition('Lower')
             elif self.phase == 'Lower':
-                # 下降时按瓶身Body原点修正XY，与最终放置误差使用同一参考。
-                # 若按瓶底顶点中心追踪，瓶身倾斜会让目标横移并把瓶子推偏。
-                self.lower_goal = self.place_tcp.copy()
-                self.lower_goal[:2] = tcp[:2]+self.place_body[:2]-p[:2]
+                # Keep the transfer-end XY target fixed throughout lowering.
+                # Final placement/slip checks remain independent and unchanged.
                 self.set_tcp(self.lower_goal, dt)
                 # 支撑接触后不再要求把瓶子硬压到理想TCP高度；
                 # 由实际瓶底/放置位置确认接近桌面，再松爪，最终仍需独立放稳验收。
+                base_world = p + quat_to_rot_matrix(q) @ self.base_center_local
+                support_xy_error = float(np.linalg.norm(
+                    base_world[:2] - np.asarray(self.lower_support_target_world_m)[:2]))
                 supported = (abs(self.command_tcp[2]-self.place_tcp[2]) < 0.0001
                              and abs(m['bottom_clearance_m']) < 0.003
-                             and m['xy_error_m'] < 0.005
+                             and support_xy_error < 0.005
                              and m['height_error_m'] < 0.008
                              and m['tilt_degrees'] < 15)
                 if supported:
@@ -642,6 +656,7 @@ class BottleLesson(lesson04['HoverLesson']):
                       'wall_timeout_seconds': WALL_TIMEOUT_SECONDS,
                       'tcp_position_tolerance_m': 0.006, 'tcp_orientation_tolerance_degrees': 3,
                       'move_speed_m_s': MOVE_SPEED_M_S, 'static_friction': STATIC_FRICTION,
+                      'lower_xy_correction': 'support_center_snapshot_at_transfer_end',
                       'dynamic_friction': DYNAMIC_FRICTION, 'friction_source': 'simulation_assumption',
                       'gripper_drive_max_force_n': GRIP_DRIVE_MAX_FORCE_N,
                       'gripper_drive_stiffness': GRIP_DRIVE_STIFFNESS,

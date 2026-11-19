@@ -7,7 +7,8 @@
 ## 功能链路
 
 ```text
-手眼相机 RGB + 深度 + 实例 Mask
+手眼相机 RGB → YOLO 实例分割 Mask（可选仿真 Mask 基线）
+    + 同帧深度与相机内外参
     → 已知网格模板平移估计 → Lula IK → 连续关节驱动
     → 瓶身中部渐进夹持 → 抬升 → 搬运 → 放置 → 松爪撤离
     → JSON 阶段诊断与任务结果
@@ -18,7 +19,7 @@
 
 - **物理交互**：动态刚体、碰撞代理、自定义加长夹指、渐进闭爪及有限预紧。
 - **运动与评测**：IK 可达性预检、关节限速、TCP 跟踪监控、滑移/倾倒/超时判断、放置误差与失败阶段记录。
-- **视觉基线**：深度反投影、相机到世界变换、已知模板拟合；使用仿真真值 Mask 和固定朝向先验。
+- **视觉定位**：YOLO 分割或仿真 Mask 基线、深度反投影、相机到世界变换、已知模板拟合；仍采用固定朝向先验。
 - **数据采集**：可复现的随机参数、瓶身/瓶盖覆盖检查、边缘截断与过小目标过滤、逐样本元数据。
 - **ROS2**：任务话题接口与状态反馈，可结合场景中的关节状态、TF、仿真时间发布进行 bag 录制。
 
@@ -48,6 +49,10 @@ runpy.run_path(str(PROJECT / "scripts/12_visual_bottle_pick.py"), run_name="__ma
 | `scripts/14_generate_bottle_dataset.py` | 不抓取，自动生成分割数据集 |
 | `scripts/15_fixed_pose_waterbottle_grasp.py` | 固定坐标瓶颈夹持、抬升保持基线 |
 | `scripts/16_repeat_fixed_pose_waterbottle_grasp.py` | 固定抓取重复测试及汇总 |
+| `scripts/17_verify_yolo_baseline.py` | 独立训练环境验证已有 YOLO 分割权重 |
+| `scripts/18_compare_yolo_pose.py` | 离线对照 YOLO/仿真 Mask 的定位结果 |
+| `scripts/19_yolo_visual_pick.py` | 实时拍摄、外部 YOLO 推理、深度定位及完整抓放 |
+| `scripts/yolo_mask_inference.py` | 外部推理进程、采集编号与输入输出哈希校验 |
 | `scripts/franka_visual_compat.py` | Franka 连杆与夹爪实例几何显示兼容 |
 
 第 1～8 课为历史学习与资产导入脚本，包含不同对象/场景假设，不应直接套用到当前水瓶。学习材料见 [学习拼图](学习拼图.md) 与 [历史课程记录](docs/lesson_history.md)。当前版本的参数和结果以 [验证记录](docs/current_validation.md) 为准。
@@ -57,12 +62,13 @@ runpy.run_path(str(PROJECT / "scripts/12_visual_bottle_pick.py"), run_name="__ma
 | 实验 | 范围 | 结果 |
 | --- | --- | --- |
 | 视觉瓶身抓取与放置 | 当前场景单轮 | 成功；最大抬升 123.2 mm，最大滑移 6.5 mm，最终 XY 误差 11.2 mm |
+| YOLO 分割驱动抓取与放置 | 当前场景完整成功样例；后续运行仍有撤离超时 | 成功样例最大抬升 119.9 mm，最大滑移 8.6 mm，最终 XY 误差 2.9 mm；见 [联调与验收记录](docs/yolo_live_pick.md) |
 | 固定坐标瓶颈抓取 | 相同初始条件 10 轮，只抬升保持 | 10/10 成功，平均抬升 73.0 mm |
 | 自动数据采集 | 54 次采集尝试 | 50 张合格样本，训练/验证 40/10 |
 
 保留了 [原始示例报告](examples/reports)；视觉单轮成功与固定坐标 10 轮是不同实验。批量图像、HDF5、模型权重、缓存和 Python 虚拟环境由本地生成。
 
-当前总质量约 560 g、摩擦和驱动参数为仿真假设；加长夹指与增大的开口为自定义仿真夹具。当前未接入 YOLO 推理、真实相机或真实机械臂，不将这些结果表述为 Sim2Real 部署完成。
+当前总质量约 560 g、摩擦和驱动参数为仿真假设；加长夹指与增大的开口为自定义仿真夹具。YOLO 接入操作见 [实时视觉抓放](docs/yolo_live_pick.md)，原始 Mask 对照见 [离线定位验证](docs/yolo_offline_pose.md)。未接入真实相机或真实机械臂，不将这些结果表述为 Sim2Real 部署完成。
 
 ## ROS2 任务输入
 

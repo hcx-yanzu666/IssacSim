@@ -7,7 +7,12 @@ it estimates translation from RGB-D and checks IK before starting lesson 09.
 import asyncio
 import builtins
 import json
+import os
 from pathlib import Path
+import runpy
+import subprocess
+import time
+import uuid
 
 import numpy as np
 import omni.timeline
@@ -27,10 +32,63 @@ TASK_KEY = "_isaac_visual_bottle_pick_task"
 RUNNER_RESULT = SCRIPT_DIR.parent / "outputs" / "visual_pick_runner_latest.json"
 
 
+async def infer_yolo_mask(data_dir, capture_id, check_cancel, weights=None, device='cpu', timeout=90):
+    """Poll an isolated worker without blocking the Kit update loop."""
+    root = SCRIPT_DIR.parent
+    python = root / '.venv' / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
+    weights = Path(weights) if weights else root / 'outputs/yolo_train/baseline50_run2/weights/best.pt'
+    if not python.is_file() or not weights.is_file():
+        raise FileNotFoundError('YOLO .venv interpreter or trained weights missing')
+    helper = runpy.run_path(str(SCRIPT_DIR / 'yolo_mask_inference.py'))
+    request = {
+        'capture_id': capture_id, 'rgb_sha256': helper['file_hash'](data_dir / 'rgb.png'),
+        'resolution': [640, 360],
+    }
+    (data_dir / 'yolo_request.json').write_text(json.dumps(request, indent=2), encoding='utf-8')
+    env = os.environ.copy()
+    for key in ('PYTHONHOME', 'PYTHONPATH', 'VIRTUAL_ENV'):
+        env.pop(key, None)
+    env['PYTHONNOUSERSITE'] = '1'
+    env['PYTHONUTF8'] = '1'
+    if os.name == 'nt':
+        windows = Path(env.get('SystemRoot', r'C:\Windows'))
+        env['PATH'] = os.pathsep.join(map(str, [python.parent, windows / 'System32', windows]))
+    command = [str(python), str(SCRIPT_DIR / 'yolo_mask_inference.py'),
+               '--capture', str(data_dir), '--weights', str(weights), '--device', device]
+    process = None
+    with (data_dir / 'yolo_worker.log').open('w', encoding='utf-8') as log:
+        try:
+            process = subprocess.Popen(command, cwd=str(root), env=env, stdout=log,
+                stderr=subprocess.STDOUT, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+            started = time.monotonic()
+            while process.poll() is None:
+                check_cancel()
+                if time.monotonic() - started > timeout:
+                    raise TimeoutError(f'YOLO inference exceeded {timeout}s; see yolo_worker.log')
+                await omni.kit.app.get_app().next_update_async()
+            check_cancel()
+            if not (data_dir / 'yolo_result.json').exists():
+                raise RuntimeError(f'YOLO worker exited {process.returncode}; see yolo_worker.log')
+            result = helper['validate_result'](data_dir, capture_id)
+            if process.returncode != 0:
+                raise RuntimeError(f'YOLO worker exited {process.returncode}')
+            return result
+        finally:
+            if process is not None and process.poll() is None:
+                process.kill()
+                await asyncio.to_thread(process.wait)
+
+
 async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
                            cancel_requested=None, data_dir=None,
                            depth_noise_sigma_m=0.0, depth_noise_seed=0,
-                           prepare_scene_callback=None):
+                           prepare_scene_callback=None, mask_source='sim',
+                           yolo_weights=None, yolo_device='cpu'):
+    if mask_source not in ('sim', 'yolo'):
+        raise ValueError('mask_source must be sim or yolo')
+    capture_id = uuid.uuid4().hex
+    if mask_source == 'yolo' and data_dir is None:
+        data_dir = SCRIPT_DIR.parent / 'outputs/yolo_pick' / capture_id
     data_dir = Path(data_dir) if data_dir is not None else DATA_DIR
     if not np.isfinite(depth_noise_sigma_m) or depth_noise_sigma_m < 0:
         raise ValueError("depth_noise_sigma_m must be finite and non-negative")
@@ -65,7 +123,7 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
     if not camera_prim or not bottle_prim:
         raise RuntimeError("场景缺少 WristCamera 或瓶子 Mesh")
 
-    report_phase("capturing_rgbd", "采集手眼相机 RGB-D 和分割 mask")
+    report_phase("capturing_rgbd", "采集手眼相机 RGB-D，绑定本次采集编号")
     data_dir.mkdir(parents=True, exist_ok=True)
     render_product = rep.create.render_product(camera_path, (640, 360))
     rgb_annotator = rep.AnnotatorRegistry.get_annotator("rgb")
@@ -73,28 +131,28 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
     # instance_id_segmentation preserves the USD prim path for every visible
     # mesh.  The semantic annotator only returns generic UNLABELLED here,
     # which would make a valid bottle produce an empty mask.
-    mask_annotator = rep.AnnotatorRegistry.get_annotator("instance_id_segmentation")
-    for annotator in (rgb_annotator, depth_annotator, mask_annotator):
+    mask_annotator = (rep.AnnotatorRegistry.get_annotator("instance_id_segmentation")
+                      if mask_source == 'sim' else None)
+    annotators = [rgb_annotator, depth_annotator] + ([mask_annotator] if mask_annotator else [])
+    for annotator in annotators:
         annotator.attach([render_product])
     try:
         await rep.orchestrator.step_async(rt_subframes=4)
         check_cancel()
         rgb = np.asarray(rgb_annotator.get_data())[:, :, :3].astype(np.uint8)
         depth = np.asarray(depth_annotator.get_data(), dtype=np.float32)
-        seg = mask_annotator.get_data()
-        seg_data = np.asarray(seg["data"])
-        if seg_data.ndim == 3 and seg_data.shape[-1] == 1:
-            seg_data = seg_data[..., 0]
-        labels = seg.get("info", {}).get("idToLabels", {})
-        ids = [int(key) for key, value in labels.items()
-               if isinstance(value, str)
-               and (value == bottle_path or value.startswith(bottle_path + "/"))]
-        mask = np.isin(seg_data, ids)
-        if rgb.shape != (360, 640, 3) or depth.shape != (360, 640) or not mask.any():
-            raise RuntimeError(
-                f"RGB-D/mask采集异常：rgb={rgb.shape}, depth={depth.shape}, "
-                f"mask_pixels={int(mask.sum())}, ids={ids}"
-            )
+        mask, ids = None, []
+        if mask_annotator is not None:
+            seg = mask_annotator.get_data()
+            seg_data = np.asarray(seg['data']).squeeze()
+            labels = seg.get('info', {}).get('idToLabels', {})
+            ids = [int(key) for key, value in labels.items() if isinstance(value, str)
+                   and (value == bottle_path or value.startswith(bottle_path + '/'))]
+            mask = np.isin(seg_data, ids)
+            if not mask.any():
+                raise RuntimeError('Empty simulator reference mask')
+        if rgb.shape != (360, 640, 3) or depth.shape != (360, 640):
+            raise RuntimeError(f'RGB-D shape mismatch: {rgb.shape}, {depth.shape}')
 
         valid_depth = np.isfinite(depth) & (depth > 0)
         if depth_noise_sigma_m > 0:
@@ -109,7 +167,8 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
         Image.fromarray(rgb, "RGB").save(data_dir / "rgb.png")
         np.save(data_dir / "depth_m.npy", depth)
         np.save(data_dir / "depth_noisy_m.npy", noisy_depth)
-        Image.fromarray(mask.astype(np.uint8) * 255, "L").save(data_dir / "bottle_mask.png")
+        if mask is not None:
+            Image.fromarray(mask.astype(np.uint8) * 255, "L").save(data_dir / "bottle_mask.png")
 
         camera = UsdGeom.Camera(camera_prim)
         focal = float(camera.GetFocalLengthAttr().Get())
@@ -133,6 +192,9 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
             print("[视觉抓取] joint snapshot unavailable:", str(exc))
 
         metadata = {
+            'schema_version': 2,
+            'capture_id': capture_id,
+            'mask_source': mask_source,
             "camera_prim": camera_path,
             "resolution": [640, 360],
             "depth_encoding": "float32 meters; distance_to_image_plane",
@@ -149,9 +211,12 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
             },
             "camera_to_world_matrix_usd_row_vector_convention": camera_to_world,
             "observation_joint_pose_rad": joint_pose,
-            "bottle_body_translation_world_m_evaluation_only": [
+            "bottle_parent_translation_world_m_evaluation_only": [
                 float(v) for v in bottle_world.ExtractTranslation()
             ],
+            'bottle_body_translation_world_m_evaluation_only': [float(v) for v in
+                UsdGeom.Xformable(stage.GetPrimAtPath(bottle_path + '/body'))
+                .ComputeLocalToWorldTransform(Usd.TimeCode.Default()).ExtractTranslation()],
         }
         (data_dir / "camera_info.json").write_text(
             json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -159,30 +224,58 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
         mask_info = {
             "camera_prim": camera_path,
             "resolution": [640, 360],
-            "annotator": "instance_segmentation",
+            "annotator": 'instance_id_segmentation' if mask_source == 'sim' else 'yolo_pending',
             "target_prim_path": bottle_path,
             "instance_ids": ids,
-            "white_pixel_count": int(mask.sum()),
-            "white_pixel_ratio": float(mask.mean()),
+            "white_pixel_count": int(mask.sum()) if mask is not None else None,
+            "white_pixel_ratio": float(mask.mean()) if mask is not None else None,
         }
         (data_dir / "bottle_mask_info.json").write_text(
             json.dumps(mask_info, ensure_ascii=False, indent=2), encoding="utf-8"
         )
-        print("[视觉抓取] synchronized RGB-D captured; mask pixels:", int(mask.sum()))
+        print('[视觉抓取] synchronized RGB-D captured:', capture_id, 'mask source:', mask_source)
     finally:
-        for annotator in (rgb_annotator, depth_annotator, mask_annotator):
+        for annotator in annotators:
             annotator.detach([render_product])
         render_product.destroy()
 
     # Recompute from saved sensor outputs; do not reuse a stale estimate.
     check_cancel()
+    mask_path = data_dir / 'bottle_mask.png'
+    if mask_source == 'yolo':
+        report_phase('yolo_inference', '外部 YOLO 识别 RGB，返回同编号瓶子 Mask')
+        inference = await infer_yolo_mask(data_dir, capture_id, check_cancel, yolo_weights, yolo_device)
+        mask_info.update(annotator='yolo11n-seg', capture_id=capture_id,
+                         white_pixel_count=inference['mask_pixels'],
+                         white_pixel_ratio=inference['mask_pixels'] / (640 * 360),
+                         instance_ids=[], target_prim_path=None,
+                         class_name=inference['class_name'], confidence=inference['confidence'])
+        (data_dir / 'bottle_mask_info.json').write_text(
+            json.dumps(mask_info, indent=2), encoding='utf-8')
+        mask_path = data_dir / 'yolo_mask.png'
+        if omni.usd.get_context().get_stage() != stage or timeline.is_playing():
+            raise RuntimeError('Scene changed or simulation started during perception')
+        current_camera = np.asarray(UsdGeom.Xformable(camera_prim)
+            .ComputeLocalToWorldTransform(Usd.TimeCode.Default()))
+        if not np.allclose(current_camera, camera_to_world, atol=1e-6, rtol=0):
+            raise RuntimeError('Camera moved during inference; recapture required')
     report_phase("estimating_pose", "根据深度、mask 和瓶子模板估计抓取位置")
-    import runpy
     estimator = runpy.run_path(str(ESTIMATOR_SCRIPT))
     estimate = estimator["main"](
         data_dir=data_dir,
         depth_path=data_dir / "depth_noisy_m.npy",
+        mask_path=mask_path,
+        fixed_body_rotation=np.eye(3) if mask_source == 'yolo' else None,
     )
+    if mask_source == 'yolo':
+        if (not np.all(np.isfinite(estimate['estimated_body_translation_world_m']))
+                or estimate['median_nearest_surface_residual_m'] > 0.015
+                or estimate['p90_nearest_surface_residual_m'] > 0.060):
+            raise RuntimeError('Depth/template fit failed quality gate; task not started')
+        table = runpy.run_path(str(SCRIPT_DIR / '04_hover_above_cube.py'))['ExistingCuboid'](stage, '/World/DeskTop')
+        xy = np.asarray(estimate['estimated_body_translation_world_m'])[:2]
+        if np.any(np.abs(xy - table.center[:2]) > table.size[:2] / 2 - 0.07):
+            raise RuntimeError('Estimated grasp XY outside tabletop working area')
     precheck = estimate["grasp_ik_precheck"]
     if not precheck["all_ik_succeeded"]:
         raise RuntimeError("视觉估计的预抓取/抓取位姿未通过 IK，任务未启动")
@@ -201,7 +294,9 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
     if place_xy_world_m is not None:
         print("[视觉抓取] 指定放置位置 world XY：" + json.dumps(place_xy_world_m))
     await task
-    return getattr(builtins, "_isaac_lesson09_result", {})
+    result = dict(getattr(builtins, "_isaac_lesson09_result", {}))
+    result.update(capture_id=capture_id, mask_source=mask_source, capture_dir=str(data_dir))
+    return result
 
 
 if __name__ == "__main__":

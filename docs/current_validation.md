@@ -4,6 +4,8 @@
 
 ## 当前结果
 
+新增 YOLO 实时分割抓放链路：2026-11-19 第三次联调在控制修正后单轮通过，最大抬升 119.88 mm、最大滑移 8.60 mm、最终 XY 放置误差 2.91 mm。前两轮分别因下降滑移和放置误差失败，后续一次运行在 RetreatClear 阶段超时，尚不能认定重复运行稳定。入口为 `scripts/19_yolo_visual_pick.py`，原入口默认保留仿真 Mask；详细过程与边界见 [YOLO 实时视觉抓放](yolo_live_pick.md)。以下为此前仿真 Mask 基线的记录。
+
 2026-11-19 完成一次 RGB-D 视觉抓放，从采图、模板定位、IK 到抓取、搬运、松爪、撤离和放稳检查。最终 `Succeeded / Settle`，仿真耗时 40.20 s，最大抬升 123.18 mm，最大记录滑移 6.49 mm，最终 XY 放置误差 11.23 mm。放置验收阈值为 15 mm，未放宽原阈值。
 
 原始结构化报告：[visual_pick_bottle014_success.json](../examples/reports/visual_pick_bottle014_success.json)。这是单次完整视觉抓放验证，不代表视觉抓放批量成功率。

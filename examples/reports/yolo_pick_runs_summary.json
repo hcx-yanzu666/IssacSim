@@ -1,0 +1,97 @@
+{
+  "scope": "Development runs across control revisions, not a controlled batch success-rate benchmark",
+  "runs": [
+    {
+      "run_id": "20261119_130528_5b8bbc4d",
+      "status": "Failed",
+      "phase": "Lower",
+      "detail": "物体相对TCP滑移超过1.5cm",
+      "wall_seconds": 280.06299999996554,
+      "elapsed_seconds": 30.350001582875848,
+      "max_lift_m": 0.1193130612373352,
+      "max_hold_transport_slip_m": 0.015080843716086655,
+      "metrics": {
+        "lift_m": 0.07531571388244629,
+        "bottom_clearance_m": 0.0717077434317418,
+        "tilt_degrees": 9.42312780902287,
+        "xy_error_m": 0.01004130345241813,
+        "height_error_m": 0.07531571388244629,
+        "tcp_xy_clearance_m": 0.013107697740645255,
+        "linear_speed_m_s": 0.3508584499359131,
+        "angular_speed_rad_s": 5.056624889373779,
+        "finger_position_m": 0.0410999059677124,
+        "tcp_above_bottle_top_m": -0.18964774943212437
+      },
+      "lower_xy_correction": "per_step_body_origin"
+    },
+    {
+      "run_id": "20261119_131132_a57b8116",
+      "status": "Failed",
+      "phase": "Settle",
+      "detail": "放置未达标：检查位置、倾角、速度和撤离距离",
+      "wall_seconds": 373.26599999994505,
+      "elapsed_seconds": 43.46666893362999,
+      "max_lift_m": 0.11989563703536987,
+      "max_hold_transport_slip_m": 0.0063487849254557725,
+      "metrics": {
+        "lift_m": -1.2516975402832031e-06,
+        "bottom_clearance_m": -5.49860955656456e-08,
+        "tilt_degrees": 8.88417017276174e-05,
+        "xy_error_m": 0.02029823460106937,
+        "height_error_m": 1.2516975402832031e-06,
+        "tcp_xy_clearance_m": 0.13496784905248005,
+        "linear_speed_m_s": 0.00010413184645585716,
+        "angular_speed_rad_s": 0.0038789210375398397,
+        "finger_position_m": 0.044999994337558746,
+        "tcp_above_bottle_top_m": -0.17595082468484813
+      },
+      "lower_xy_correction": "snapshot_at_transfer_end"
+    },
+    {
+      "run_id": "20261119_131851_aa31039f",
+      "status": "Succeeded",
+      "phase": "Settle",
+      "detail": "瓶子已抓起、搬运、松开并直立放稳",
+      "wall_seconds": 348.06199999991804,
+      "elapsed_seconds": 39.48750205943361,
+      "max_lift_m": 0.11988157033920288,
+      "max_hold_transport_slip_m": 0.008597386837472522,
+      "metrics": {
+        "lift_m": -7.748603820800781e-07,
+        "bottom_clearance_m": -2.8659895678906366e-08,
+        "tilt_degrees": 4.6895416807668116e-05,
+        "xy_error_m": 0.002914396407103208,
+        "height_error_m": 8.940696716308594e-07,
+        "tcp_xy_clearance_m": 0.13604598440514112,
+        "linear_speed_m_s": 0.0005122312577441335,
+        "angular_speed_rad_s": 0.004137107636779547,
+        "finger_position_m": 0.04500000178813934,
+        "tcp_above_bottle_top_m": -0.17693825344235092
+      },
+      "lower_xy_correction": "support_center_snapshot_at_transfer_end"
+    },
+    {
+      "run_id": "20261119_132911_4956fff2",
+      "status": "TimedOut",
+      "phase": "RetreatClear",
+      "detail": "RetreatClear阶段未按时完成",
+      "wall_seconds": 459.1570000000065,
+      "elapsed_seconds": 56.76666962727904,
+      "max_lift_m": 0.1218835711479187,
+      "max_hold_transport_slip_m": 0.0082685638452336,
+      "metrics": {
+        "lift_m": -1.0728836059570312e-06,
+        "bottom_clearance_m": -9.391454280915923e-11,
+        "tilt_degrees": 9.648019971197758e-05,
+        "xy_error_m": 0.0051332867436353485,
+        "height_error_m": 1.0728836059570312e-06,
+        "tcp_xy_clearance_m": 0.11571992548978238,
+        "linear_speed_m_s": 0.0005780423525720835,
+        "angular_speed_rad_s": 0.004694849718362093,
+        "finger_position_m": 0.04500000551342964,
+        "tcp_above_bottle_top_m": -0.17215255564720877
+      },
+      "lower_xy_correction": "support_center_snapshot_at_transfer_end"
+    }
+  ]
+}

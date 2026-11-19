@@ -1,0 +1,88 @@
+{
+  "status": "completed",
+  "moves_robot": false,
+  "capture": "PROJECT_ROOT\\outputs\\wrist_rgbd_01",
+  "evaluation_ground_truth": {
+    "body_translation_world_m": [
+      0.1800016313791275,
+      -0.2000003606081009,
+      0.9204573631286621
+    ],
+    "source": "PROJECT_ROOT\\outputs\\wrist_rgbd_01\\bottle_pose_estimate.json",
+    "note": "Historical same-capture estimator report; evaluation only. Current live scene pose is not used."
+  },
+  "sim_reestimate_vs_historical_mm": 2.7755575615628914e-14,
+  "scope": "Offline mask substitution and translation comparison; no IK or grasp execution",
+  "inputs_sha256": {
+    "PROJECT_ROOT\\outputs\\wrist_rgbd_01\\rgb.png": "2c892f43cef3d6817d6fa9abedb408124a06c2e8a00f06d20d9215cec8324c4a",
+    "PROJECT_ROOT\\outputs\\wrist_rgbd_01\\depth_m.npy": "b4ef5a340863a8ed6deb8e78e64c35b70896da440e9e20f878eb51bb54bb7d0e",
+    "PROJECT_ROOT\\outputs\\wrist_rgbd_01\\camera_info.json": "c541e2b62ef4c7b4d2c9fb96a348c75454d4a4b55ae793fe02e2b1824f170e6f",
+    "PROJECT_ROOT\\outputs\\wrist_rgbd_01\\bottle_mask.png": "e0c755fd36d00102422bd1b4ce6ab557d8a7d3c6c32a7a40b112d474a9caa31a",
+    "PROJECT_ROOT\\outputs\\yolo_train\\baseline50_run2\\weights\\best.pt": "0a8521bf9e463777dc2294f3f5a3e5bc1b7b8524e6008cd2bce9a8f4794c1713",
+    "PROJECT_ROOT\\outputs\\perception_templates\\bottle014_body.npz": "d36a089a79a16ea558aac80eb19251419c2a70bc57bff438523c13aa4164bdaa"
+  },
+  "orientation_prior": "Identity body-to-world rotation (upright fixed setup); not estimated. Historical tiny tilt may differ.",
+  "estimator": "Unmodified NumPy backprojection and robust translation ICP from script 11; stride=4, erosion=3px",
+  "model_vertices": 2556,
+  "confidence": 0.9132161140441895,
+  "bottle_candidates": 1,
+  "candidate_selection": "Highest confidence bottle; no reference mask or ground truth used",
+  "mask_iou": 0.9615986293206198,
+  "results": {
+    "yolo": {
+      "estimated_body_translation_world_m": [
+        0.18082783751631204,
+        -0.20127513727567414,
+        0.9338555496696117
+      ],
+      "mask_pixels": 25985,
+      "observed_points": 1463,
+      "median_surface_residual_mm": 4.978045179378151,
+      "p90_surface_residual_mm": 38.62651694018451,
+      "evaluation_error_xyz_mm": [
+        0.8262061371845375,
+        -1.274776667573252,
+        13.398186540949597
+      ],
+      "evaluation_error_xy_mm": 1.5191024104090414,
+      "evaluation_error_3d_mm": 13.484030358887269
+    },
+    "sim": {
+      "estimated_body_translation_world_m": [
+        0.18085550574032572,
+        -0.20124725276475391,
+        0.9338046047109451
+      ],
+      "mask_pixels": 26680,
+      "observed_points": 1513,
+      "median_surface_residual_mm": 4.945797664500563,
+      "p90_surface_residual_mm": 37.815375980446184,
+      "evaluation_error_xyz_mm": [
+        0.8538743611982147,
+        -1.2468921566530233,
+        13.347241582282955
+      ],
+      "evaluation_error_xy_mm": 1.5112383911992464,
+      "evaluation_error_3d_mm": 13.4325239374757
+    }
+  },
+  "yolo_minus_sim_xyz_mm": [
+    -0.02766822401367719,
+    -0.02788451092022859,
+    0.05094495866664328
+  ],
+  "mask_induced_xy_difference_mm": 0.03928201330547316,
+  "mask_induced_3d_difference_mm": 0.06433090534787585,
+  "mask_substitution_gate": {
+    "threshold_xy_mm": 5.0,
+    "passed": true,
+    "meaning": "Engineering comparison threshold only, not proof of absolute pose accuracy or safe grasp"
+  },
+  "limitations": [
+    "One saved frame only",
+    "Known mesh and fixed orientation prior",
+    "Body visual mesh template excludes lid while masks include lid",
+    "No independent real-world evaluation",
+    "Legacy camera metadata parent-origin field ignored"
+  ]
+}

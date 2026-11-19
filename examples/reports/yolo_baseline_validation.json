@@ -1,0 +1,292 @@
+{
+  "scope": "Existing validation split; same asset, scene and narrow randomization ranges. Not independent test or real-world validation.",
+  "weights": "PROJECT_ROOT\\outputs\\yolo_train\\baseline50_run2\\weights\\best.pt",
+  "weights_sha256": "0a8521bf9e463777dc2294f3f5a3e5bc1b7b8524e6008cd2bce9a8f4794c1713",
+  "dataset": "PROJECT_ROOT\\outputs\\bottle_dataset\\batch_20261119_20261118_165034",
+  "counts": {
+    "train": 40,
+    "val": 10
+  },
+  "exact_cross_split_duplicates": 0,
+  "label_mask_iou_min": 0.9904522989366482,
+  "label_mask_iou_mean": 0.9921902007330645,
+  "metrics": {
+    "metrics/precision(B)": 0.9946661824527383,
+    "metrics/recall(B)": 1.0,
+    "metrics/mAP50(B)": 0.995,
+    "metrics/mAP50-95(B)": 0.9109999999999999,
+    "metrics/precision(M)": 0.9946661824527383,
+    "metrics/recall(M)": 1.0,
+    "metrics/mAP50(M)": 0.995,
+    "metrics/mAP50-95(M)": 0.9395714285714286,
+    "fitness": 1.8505714285714285
+  },
+  "prediction_conf_threshold": 0.25,
+  "images_with_detection": 10,
+  "extra_detections": 0,
+  "mean_top_confidence_mask_iou": 0.9690174988814121,
+  "per_image": [
+    {
+      "image": "bottle_000040.png",
+      "detections": 1,
+      "confidence": 0.8778266310691833,
+      "mask_iou": 0.9694062073292247
+    },
+    {
+      "image": "bottle_000041.png",
+      "detections": 1,
+      "confidence": 0.896902859210968,
+      "mask_iou": 0.9702598120508569
+    },
+    {
+      "image": "bottle_000042.png",
+      "detections": 1,
+      "confidence": 0.877578854560852,
+      "mask_iou": 0.9744256769134944
+    },
+    {
+      "image": "bottle_000043.png",
+      "detections": 1,
+      "confidence": 0.9281171560287476,
+      "mask_iou": 0.9565906327154807
+    },
+    {
+      "image": "bottle_000044.png",
+      "detections": 1,
+      "confidence": 0.9213454723358154,
+      "mask_iou": 0.9703805051214732
+    },
+    {
+      "image": "bottle_000045.png",
+      "detections": 1,
+      "confidence": 0.9026622176170349,
+      "mask_iou": 0.9662648831397913
+    },
+    {
+      "image": "bottle_000046.png",
+      "detections": 1,
+      "confidence": 0.9238703846931458,
+      "mask_iou": 0.9614789147744028
+    },
+    {
+      "image": "bottle_000047.png",
+      "detections": 1,
+      "confidence": 0.8600330948829651,
+      "mask_iou": 0.9760577238438832
+    },
+    {
+      "image": "bottle_000048.png",
+      "detections": 1,
+      "confidence": 0.9011715054512024,
+      "mask_iou": 0.9666298749080207
+    },
+    {
+      "image": "bottle_000049.png",
+      "detections": 1,
+      "confidence": 0.920909583568573,
+      "mask_iou": 0.9786807580174927
+    }
+  ],
+  "label_audit": [
+    {
+      "image": "images\\train\\bottle_000000.png",
+      "polygon_mask_iou": 0.9924851385202079
+    },
+    {
+      "image": "images\\train\\bottle_000001.png",
+      "polygon_mask_iou": 0.9907248752141846
+    },
+    {
+      "image": "images\\train\\bottle_000002.png",
+      "polygon_mask_iou": 0.9925256581883088
+    },
+    {
+      "image": "images\\train\\bottle_000003.png",
+      "polygon_mask_iou": 0.9914804573649204
+    },
+    {
+      "image": "images\\train\\bottle_000004.png",
+      "polygon_mask_iou": 0.9935303242404752
+    },
+    {
+      "image": "images\\train\\bottle_000005.png",
+      "polygon_mask_iou": 0.9919844100452255
+    },
+    {
+      "image": "images\\train\\bottle_000006.png",
+      "polygon_mask_iou": 0.9907348837209302
+    },
+    {
+      "image": "images\\train\\bottle_000007.png",
+      "polygon_mask_iou": 0.9913590233857921
+    },
+    {
+      "image": "images\\train\\bottle_000008.png",
+      "polygon_mask_iou": 0.9906831154483521
+    },
+    {
+      "image": "images\\train\\bottle_000009.png",
+      "polygon_mask_iou": 0.991517297337169
+    },
+    {
+      "image": "images\\train\\bottle_000010.png",
+      "polygon_mask_iou": 0.9919249317731504
+    },
+    {
+      "image": "images\\train\\bottle_000011.png",
+      "polygon_mask_iou": 0.9932858368458354
+    },
+    {
+      "image": "images\\train\\bottle_000012.png",
+      "polygon_mask_iou": 0.9925047544468061
+    },
+    {
+      "image": "images\\train\\bottle_000013.png",
+      "polygon_mask_iou": 0.9927682099455752
+    },
+    {
+      "image": "images\\train\\bottle_000014.png",
+      "polygon_mask_iou": 0.9921492392238962
+    },
+    {
+      "image": "images\\train\\bottle_000015.png",
+      "polygon_mask_iou": 0.9924170268884167
+    },
+    {
+      "image": "images\\train\\bottle_000016.png",
+      "polygon_mask_iou": 0.9908918547157887
+    },
+    {
+      "image": "images\\train\\bottle_000017.png",
+      "polygon_mask_iou": 0.9922886765302734
+    },
+    {
+      "image": "images\\train\\bottle_000018.png",
+      "polygon_mask_iou": 0.9922818055453947
+    },
+    {
+      "image": "images\\train\\bottle_000019.png",
+      "polygon_mask_iou": 0.9913191237856008
+    },
+    {
+      "image": "images\\train\\bottle_000020.png",
+      "polygon_mask_iou": 0.9920258699886084
+    },
+    {
+      "image": "images\\train\\bottle_000021.png",
+      "polygon_mask_iou": 0.9937532535137948
+    },
+    {
+      "image": "images\\train\\bottle_000022.png",
+      "polygon_mask_iou": 0.9921889392432114
+    },
+    {
+      "image": "images\\train\\bottle_000023.png",
+      "polygon_mask_iou": 0.9938359234907352
+    },
+    {
+      "image": "images\\train\\bottle_000024.png",
+      "polygon_mask_iou": 0.9904522989366482
+    },
+    {
+      "image": "images\\train\\bottle_000025.png",
+      "polygon_mask_iou": 0.9913428025334483
+    },
+    {
+      "image": "images\\train\\bottle_000026.png",
+      "polygon_mask_iou": 0.9915621266427718
+    },
+    {
+      "image": "images\\train\\bottle_000027.png",
+      "polygon_mask_iou": 0.9908721731679148
+    },
+    {
+      "image": "images\\train\\bottle_000028.png",
+      "polygon_mask_iou": 0.9916339675723699
+    },
+    {
+      "image": "images\\train\\bottle_000029.png",
+      "polygon_mask_iou": 0.9932060702285567
+    },
+    {
+      "image": "images\\train\\bottle_000030.png",
+      "polygon_mask_iou": 0.9927979294047039
+    },
+    {
+      "image": "images\\train\\bottle_000031.png",
+      "polygon_mask_iou": 0.9924972004479283
+    },
+    {
+      "image": "images\\train\\bottle_000032.png",
+      "polygon_mask_iou": 0.9923632993512511
+    },
+    {
+      "image": "images\\train\\bottle_000033.png",
+      "polygon_mask_iou": 0.9931858175146954
+    },
+    {
+      "image": "images\\train\\bottle_000034.png",
+      "polygon_mask_iou": 0.9928494283266918
+    },
+    {
+      "image": "images\\train\\bottle_000035.png",
+      "polygon_mask_iou": 0.9931977764774722
+    },
+    {
+      "image": "images\\train\\bottle_000036.png",
+      "polygon_mask_iou": 0.9935885488500391
+    },
+    {
+      "image": "images\\train\\bottle_000037.png",
+      "polygon_mask_iou": 0.9905553318446388
+    },
+    {
+      "image": "images\\train\\bottle_000038.png",
+      "polygon_mask_iou": 0.9912968773345286
+    },
+    {
+      "image": "images\\train\\bottle_000039.png",
+      "polygon_mask_iou": 0.9911370991468079
+    },
+    {
+      "image": "images\\val\\bottle_000040.png",
+      "polygon_mask_iou": 0.9918026706231454
+    },
+    {
+      "image": "images\\val\\bottle_000041.png",
+      "polygon_mask_iou": 0.9925174099866647
+    },
+    {
+      "image": "images\\val\\bottle_000042.png",
+      "polygon_mask_iou": 0.9929302599602328
+    },
+    {
+      "image": "images\\val\\bottle_000043.png",
+      "polygon_mask_iou": 0.9931448475191759
+    },
+    {
+      "image": "images\\val\\bottle_000044.png",
+      "polygon_mask_iou": 0.9924664143101016
+    },
+    {
+      "image": "images\\val\\bottle_000045.png",
+      "polygon_mask_iou": 0.994741487092741
+    },
+    {
+      "image": "images\\val\\bottle_000046.png",
+      "polygon_mask_iou": 0.9914034828807556
+    },
+    {
+      "image": "images\\val\\bottle_000047.png",
+      "polygon_mask_iou": 0.9932627878876643
+    },
+    {
+      "image": "images\\val\\bottle_000048.png",
+      "polygon_mask_iou": 0.9920913559259397
+    },
+    {
+      "image": "images\\val\\bottle_000049.png",
+      "polygon_mask_iou": 0.9919499432836913
+    }
+  ]
+}
