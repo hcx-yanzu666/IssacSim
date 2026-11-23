@@ -192,7 +192,7 @@ async def generate_dataset(config=None, progress_callback=None, cancel_requested
     timeline = omni.timeline.get_timeline_interface()
     if timeline.is_playing():
         raise RuntimeError('Pause the simulation before dataset capture')
-    for key in ('_isaac_visual_bottle_pick_task', '_isaac_lesson09_task'):
+    for key in ('_isaac_visual_bottle_pick_task', '_isaac_bottle_pick_task'):
         task = getattr(builtins, key, None)
         if task is not None and not task.done():
             raise RuntimeError('A robot task is still running')

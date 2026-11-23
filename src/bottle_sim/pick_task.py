@@ -1,7 +1,7 @@
-"""第9课：已知位置的瓶子抓取放置基线，Isaac Sim 6.1 / PhysX。
+"""瓶子抓放：已知位置的瓶子抓取放置基线，Isaac Sim 6.1 / PhysX。
 
-教学重点：①瓶子几何适配 ②状态机 ③实际物体结果。
-复用第四课运动学初始化，以Lula IK生成连续参考；物体仅由物理接触搬运。
+包含瓶子几何适配、抓放状态机和物理结果评测。
+复用 motion.py 的运动学初始化，以Lula IK生成连续参考；物体仅由物理接触搬运。
 start() 默认读取场景瓶子位姿；start(bottle_position_world_m=[x, y, z])
 使用外部提供的瓶子 Body 世界位置作为抓取参考，不会移动瓶子。
 当前仅用参考位置的 X/Y；TCP 高度仍由桌面和 GRASP_HEIGHT_M 决定。
@@ -31,7 +31,7 @@ from isaacsim.core.utils.rotations import quat_to_rot_matrix
 from isaacsim.core.utils.types import ArticulationAction
 
 # Active bottle asset.  The mustard-bottle prototype is kept only in the
-# historical repair lesson; all current pick/place and visual-pick paths use
+# historical repair script; all current pick/place and visual-pick paths use
 # the imported bottle014 hierarchy.
 BODY_PATH = '/World/PracticeBottle/bottle014/body'
 # The imported asset has separate visual and collision hierarchies.  Physics
@@ -49,9 +49,10 @@ OPEN_POSITION_M = 0.045  # total opening 90 mm; covers the bottle014 85.5 mm bod
 MAX_TCP_REFERENCE_LAG_M = 0.012
 EXPECTED_MIDBODY_GRIPPER_POSITION_M = 0.041  # collision section at grasp height: about 81.9 mm
 GRIP_CLOSE_SPEED_M_S = 0.020
-GRIP_CLOSE_TIMEOUT_S = 4.0
+ACCEPTANCE = json.loads((PROJECT_ROOT / 'configs/task_acceptance.json').read_text(encoding='utf-8'))
+GRIP_CLOSE_TIMEOUT_S = ACCEPTANCE['grip_close_timeout_s']
 GRIP_CONTACT_STABLE_S = 0.25
-GRIP_CONTACT_POSITION_TOLERANCE_M = 0.004
+GRIP_CONTACT_POSITION_TOLERANCE_M = ACCEPTANCE['grip_contact_position_tolerance_m']
 GRIP_HOLD_PRELOAD_M = 0.001
 STATIC_FRICTION = 6.0  # 与已验证的固定抓取基线一致；仿真假设，尚未实物标定。
 DYNAMIC_FRICTION = 6.0
@@ -63,10 +64,10 @@ GRIP_DRIVE_DAMPING = 100.0
 PHYSICS_HZ = 240  # 高刚度夹持需要更小物理步长，降低接触与mimic耦合振荡。
 BOTTLE_BODY_MASS_KG = 0.54  # 560g满瓶基线：瓶盖约20g；待实物称重后替换。
 BOTTLE_LID_MASS_KG = 0.02
-WALL_TIMEOUT_SECONDS = 600  # 编辑器低实时率时留出运行时间；仿真150秒/阶段35秒限制仍保留。
-TASK_KEY = '_isaac_lesson09_task'
-RESULT_KEY = '_isaac_lesson09_result'
-lesson04 = runpy.run_path(str(PROJECT_ROOT / 'src/bottle_sim/motion.py'))
+WALL_TIMEOUT_SECONDS = ACCEPTANCE['wall_timeout_s']
+TASK_KEY = '_isaac_bottle_pick_task'
+RESULT_KEY = '_isaac_bottle_pick_result'
+motion_module = runpy.run_path(str(PROJECT_ROOT / 'src/bottle_sim/motion.py'))
 
 
 def validate_bottle_position(position):
@@ -112,7 +113,7 @@ def prepare_physics():
         if lid:
             lid_mass = UsdPhysics.MassAPI.Apply(lid)
             lid_mass.CreateMassAttr(BOTTLE_LID_MASS_KG).Set(BOTTLE_LID_MASS_KG)
-        # 与第五课一致：当前机器人资产惯量偏小，按碰撞几何估算。
+        # 与方块抓取的物理配置一致：当前机器人资产惯量偏小，按碰撞几何估算。
         for prim in Usd.PrimRange(stage.GetPrimAtPath('/World/Franka')):
             if prim.HasAPI(UsdPhysics.RigidBodyAPI):
                 mass = UsdPhysics.MassAPI.Apply(prim)
@@ -145,7 +146,7 @@ def prepare_physics():
             scale_attr.Set(Gf.Vec3f(*value) if scale_attr.GetTypeName() == 'float3' else Gf.Vec3d(*value))
         tool = stage.GetPrimAtPath('/World/Franka/panda_hand/tool_center')
         tool.GetAttribute('xformOp:translate').Set(Gf.Vec3d(0., 0., 0.1034+TCP_EXTENSION_M))
-        material = UsdShade.Material.Define(stage, '/World/Lesson09GripMaterial')
+        material = UsdShade.Material.Define(stage, '/World/BottleGripMaterial')
         api = UsdPhysics.MaterialAPI.Apply(material.GetPrim())
         api.CreateStaticFrictionAttr(STATIC_FRICTION)
         api.CreateDynamicFrictionAttr(DYNAMIC_FRICTION)
@@ -177,14 +178,14 @@ def prepare_physics():
             decomposition.CreateMaxConvexHullsAttr(64 if is_bottle_collision else 16)
 
 
-class BottleLesson(lesson04['HoverLesson']):
+class BottlePickPlaceController(motion_module['HoverController']):
     def __init__(self, bottle_position_world_m=None, place_xy_world_m=None,
                  progress_callback=None):
         # 中部侧向接近，避免手掌从顶部下降时被瓶盖挡住。
         external_position = validate_bottle_position(bottle_position_world_m)
         requested_place_xy = validate_place_position(place_xy_world_m)
         stage = omni.usd.get_context().get_stage()
-        table = lesson04['ExistingCuboid'](stage, '/World/DeskTop')
+        table = motion_module['ExistingCuboid'](stage, '/World/DeskTop')
         table_z = float(table.center[2]+table.size[2]/2)
         body_position = np.array(UsdGeom.Xformable(stage.GetPrimAtPath(BODY_PATH)).ComputeLocalToWorldTransform(Usd.TimeCode.Default()).ExtractTranslation(), dtype=float)
         reference_position = body_position if external_position is None else external_position
@@ -250,7 +251,7 @@ class BottleLesson(lesson04['HoverLesson']):
         self.grasp_tcp[2] = self.table_z+GRASP_HEIGHT_M
         self.approach_start = self.grasp_tcp-0.10*self.approach_direction
         if not 0.085 <= GRASP_HEIGHT_M <= 0.115:
-            raise ValueError('本课瓶身中部抓取高度限定0.085～0.115m')
+            raise ValueError('瓶身中部抓取高度限定0.085～0.115m')
         self.lift_tcp = self.grasp_tcp+[0., 0., LIFT_HEIGHT_M]
         self.place_body = np.r_[PLACE_XY_M if requested_place_xy is None else requested_place_xy,
                                 self.start_p[2] + self.table_z-self.initial_bottom]
@@ -277,7 +278,7 @@ class BottleLesson(lesson04['HoverLesson']):
         self.pick_verified = self.release_commanded = False
         self.stable_reference = None
         # 水平姿态的RMPflow会落入腕部限位附近的局部解。
-        # 本课使用Lula IK连续参考+限速关节驱动；参考从上一命令续算，
+        # 使用Lula IK连续参考+限速关节驱动；参考从上一命令续算，
         # 不把夹持接触引起的实际速度抖动反馈到参考轨迹中。
         subset = self.kinematics.get_joints_subset()
         self.arm_indices = np.array(subset.joint_indices, dtype=int)
@@ -293,7 +294,7 @@ class BottleLesson(lesson04['HoverLesson']):
                        self.lift_tcp + (self.place_body-self.start_p)):
             self.check_target(target)
         self.grip(OPEN_POSITION_M)
-        print(f'[第9课] 质量{self.mass_kg:.3f}kg，TCP抓取高度{GRASP_HEIGHT_M:.3f}m；薄侧夹持')
+        print(f'[瓶子抓放] 质量{self.mass_kg:.3f}kg，TCP抓取高度{GRASP_HEIGHT_M:.3f}m；薄侧夹持')
         self.emit_progress(self.phase, '抓放状态机已初始化')
 
     def emit_progress(self, phase, detail=''):
@@ -386,16 +387,19 @@ class BottleLesson(lesson04['HoverLesson']):
             joint_indices=self.arm_indices))
 
     def reached(self, tcp, rotation, goal, dt):
+        retreat = self.phase == 'RetreatClear'
+        position_limit = ACCEPTANCE['retreat_position_tolerance_m'] if retreat else 0.010
+        angle_limit = ACCEPTANCE['retreat_orientation_tolerance_degrees'] if retreat else 4
         good = (np.linalg.norm(self.command_tcp-goal) < 0.0001
-                and np.linalg.norm(tcp-goal) < 0.010
-                and lesson04['angle_error'](rotation, self.target_r) < np.deg2rad(4))
+                and np.linalg.norm(tcp-goal) < position_limit
+                and motion_module['angle_error'](rotation, self.target_r) < np.deg2rad(angle_limit))
         self.stable_seconds = self.stable_seconds+dt if good else 0.0
         return self.stable_seconds >= 0.3
 
     def transition(self, phase):
         self.phase, self.phase_time, self.stable_seconds = phase, 0., 0.
         self.phase_trace.append({'phase': phase, 'time': self.elapsed})
-        print('[第9课] '+phase)
+        print('[瓶子抓放] '+phase)
         self.emit_progress(phase, '进入抓放阶段')
 
     def measure(self, tcp, p, q):
@@ -450,7 +454,7 @@ class BottleLesson(lesson04['HoverLesson']):
             'tcp_goal_error_m': float(np.linalg.norm(tcp-goal)),
             'command_goal_error_m': float(np.linalg.norm(self.command_tcp-goal)),
             'orientation_error_degrees': float(np.rad2deg(
-                lesson04['angle_error'](rotation, self.target_r))),
+                motion_module['angle_error'](rotation, self.target_r))),
             'max_joint_tracking_error_rad': float(np.max(
                 np.abs(self.arm_command-actual_joints))),
             'arm_command_rad': self.arm_command.tolist(),
@@ -482,9 +486,9 @@ class BottleLesson(lesson04['HoverLesson']):
             self.max_lift_m = max(self.max_lift_m, m['lift_m'])
             if m['bottom_clearance_m'] < -0.006:
                 raise RuntimeError('瓶子穿入或掉到桌面以下')
-            if m['tilt_degrees'] > 20:
-                raise RuntimeError('瓶子倾倒/倾斜超过20度')
-            if self.elapsed > 150 or self.phase_time > 35:
+            if m['tilt_degrees'] > ACCEPTANCE['max_motion_tilt_degrees']:
+                raise RuntimeError(f"瓶子倾倒/倾斜超过{ACCEPTANCE['max_motion_tilt_degrees']:g}度")
+            if self.elapsed > ACCEPTANCE['task_timeout_s'] or self.phase_time > ACCEPTANCE['phase_timeout_s']:
                 self.record_phase_diagnostic(self.phase, tcp, rotation, p, q,
                                              force=True)
                 self.status, self.detail = 'TimedOut', self.phase+'阶段未按时完成'
@@ -493,8 +497,8 @@ class BottleLesson(lesson04['HoverLesson']):
                 if self.relative_reference is not None:
                     slip = float(np.linalg.norm(p-tcp-self.relative_reference))
                     self.max_slip_m = max(self.max_slip_m, slip)
-                    if slip > 0.025:
-                        raise RuntimeError('物体相对TCP滑移超过2.5cm')
+                    if slip > ACCEPTANCE['max_transport_slip_m']:
+                        raise RuntimeError(f"物体相对TCP滑移超过{ACCEPTANCE['max_transport_slip_m']*100:g}cm")
                 if self.phase in ('Hold', 'Transfer') and m['lift_m'] < LIFT_HEIGHT_M*0.65:
                     raise RuntimeError('机械臂已抬起，但瓶子未保持抬升')
 
@@ -513,7 +517,7 @@ class BottleLesson(lesson04['HoverLesson']):
                     self.transition('Close')
             elif self.phase == 'Close':
                 close_position_error = float(np.linalg.norm(tcp-self.grasp_tcp))
-                close_orientation_error = float(lesson04['angle_error'](
+                close_orientation_error = float(motion_module['angle_error'](
                     rotation, self.target_r))
                 if close_position_error > 0.012 or close_orientation_error > np.deg2rad(5):
                     raise RuntimeError(
@@ -589,10 +593,10 @@ class BottleLesson(lesson04['HoverLesson']):
                 support_xy_error = float(np.linalg.norm(
                     base_world[:2] - np.asarray(self.lower_support_target_world_m)[:2]))
                 supported = (abs(self.command_tcp[2]-self.place_tcp[2]) < 0.0001
-                             and abs(m['bottom_clearance_m']) < 0.003
-                             and support_xy_error < 0.010
-                             and m['height_error_m'] < 0.008
-                             and m['tilt_degrees'] < 15)
+                             and abs(m['bottom_clearance_m']) < ACCEPTANCE['lower_bottom_clearance_m']
+                             and support_xy_error < ACCEPTANCE['lower_support_xy_error_m']
+                             and m['height_error_m'] < ACCEPTANCE['lower_height_error_m']
+                             and m['tilt_degrees'] < ACCEPTANCE['lower_tilt_degrees'])
                 if supported:
                     self.retreat_clear_tcp = tcp-0.12*self.approach_direction
                     self.release_commanded = True
@@ -610,20 +614,20 @@ class BottleLesson(lesson04['HoverLesson']):
             elif self.phase == 'Settle':
                 tcp_clear = (m['tcp_xy_clearance_m'] > 0.07
                              or m['tcp_above_bottle_top_m'] > 0.04)
-                valid = (self.pick_verified and self.release_commanded and m['xy_error_m'] < 0.020
-                         and m['height_error_m'] < 0.012 and abs(m['bottom_clearance_m']) < 0.008
-                         and m['tilt_degrees'] < 12 and m['linear_speed_m_s'] < 0.02
-                         and m['angular_speed_rad_s'] < 0.2 and m['finger_position_m'] > 0.032
+                valid = (self.pick_verified and self.release_commanded and m['xy_error_m'] < ACCEPTANCE['placement_xy_error_m']
+                         and m['height_error_m'] < ACCEPTANCE['placement_height_error_m'] and abs(m['bottom_clearance_m']) < ACCEPTANCE['placement_bottom_clearance_m']
+                         and m['tilt_degrees'] < ACCEPTANCE['placement_tilt_degrees'] and m['linear_speed_m_s'] < ACCEPTANCE['placement_linear_speed_m_s']
+                         and m['angular_speed_rad_s'] < ACCEPTANCE['placement_angular_speed_rad_s'] and m['finger_position_m'] > 0.032
                          and tcp_clear)
                 if valid:
                     if self.stable_reference is None or np.linalg.norm(p-self.stable_reference) > 0.002:
                         self.stable_reference, self.stable_seconds = p.copy(), 0.
                     self.stable_seconds += dt
-                    if self.stable_seconds >= 0.6:
+                    if self.stable_seconds >= ACCEPTANCE['settle_stable_s']:
                         self.status, self.detail = 'Succeeded', '瓶子已抓起、搬运、松开并直立放稳'
                 else:
                     self.stable_reference, self.stable_seconds = None, 0.
-                if self.phase_time >= 5 and self.status == 'Running':
+                if self.phase_time >= ACCEPTANCE['settle_timeout_s'] and self.status == 'Running':
                     raise RuntimeError('放置未达标：检查位置、倾角、速度和撤离距离')
             self.record_phase_diagnostic(phase_at_tick, tcp, rotation, p, q)
             self.apply_arm(dt)
@@ -660,7 +664,8 @@ class BottleLesson(lesson04['HoverLesson']):
                       'max_arm_target_speed_rad_s': MAX_ARM_TARGET_SPEED_RAD_S, 'physics_hz': PHYSICS_HZ,
                       'wall_timeout_seconds': WALL_TIMEOUT_SECONDS,
                       'tcp_position_tolerance_m': 0.010, 'tcp_orientation_tolerance_degrees': 4,
-                      'max_transport_slip_m': 0.025,
+                      'max_transport_slip_m': ACCEPTANCE['max_transport_slip_m'],
+                      'acceptance_thresholds': dict(ACCEPTANCE),
                       'move_speed_m_s': MOVE_SPEED_M_S, 'static_friction': STATIC_FRICTION,
                       'lower_xy_correction': 'support_center_snapshot_at_transfer_end',
                       'dynamic_friction': DYNAMIC_FRICTION, 'friction_source': 'simulation_assumption',
@@ -700,7 +705,7 @@ class BottleLesson(lesson04['HoverLesson']):
                     'tcp_goal_error_m': (None if phase_goal is None else float(
                         np.linalg.norm(tcp-phase_goal))),
                     'orientation_error_degrees': float(np.rad2deg(
-                        lesson04['angle_error'](rotation, self.target_r))),
+                        motion_module['angle_error'](rotation, self.target_r))),
                     'joint_actual_rad': joints.tolist(),
                     'joint_reference_rad': self.arm_command.tolist(),
                     'joint_tracking_error_rad': (self.arm_command-joints).tolist(),
@@ -713,7 +718,7 @@ class BottleLesson(lesson04['HoverLesson']):
 
 def save_result(result):
     setattr(builtins, RESULT_KEY, result)
-    print('[第9课] '+json.dumps(result, ensure_ascii=False))
+    print('[瓶子抓放] '+json.dumps(result, ensure_ascii=False))
 
 
 def validate_place_position(position):
@@ -746,37 +751,37 @@ async def demo(bottle_position_world_m=None, place_xy_world_m=None,
         await omni.kit.app.get_app().next_update_async()
     # Isaac Sim 6.1's deprecated SingleArticulation wrapper may see a physics
     # view with no shared metadata while the timeline is fully stopped. Let
-    # PhysX publish one playback frame before constructing the lesson/controller.
+    # PhysX publish one playback frame before constructing the controller.
     if not timeline.is_playing():
         timeline.play()
         await omni.kit.app.get_app().next_update_async()
     try:
-        lesson = BottleLesson(bottle_position_world_m=bottle_position_world_m,
+        controller = BottlePickPlaceController(bottle_position_world_m=bottle_position_world_m,
                               place_xy_world_m=place_xy_world_m,
                               progress_callback=progress_callback)
     except Exception:
         if timeline.is_playing():
             timeline.pause()
         raise
-    subscription = omni.physx.get_physx_interface().subscribe_physics_step_events(lesson.tick)
+    subscription = omni.physx.get_physx_interface().subscribe_physics_step_events(controller.tick)
     started = time.monotonic()
     try:
-        while lesson.status == 'Running':
+        while controller.status == 'Running':
             await omni.kit.app.get_app().next_update_async()
-            if lesson.status == 'Running' and cancel_requested and cancel_requested():
-                lesson.status, lesson.detail = 'Cancelled', '收到ROS2取消请求'
+            if controller.status == 'Running' and cancel_requested and cancel_requested():
+                controller.status, controller.detail = 'Cancelled', '收到ROS2取消请求'
                 if timeline.is_playing():
                     timeline.pause()
                 break
-            if lesson.status == 'Running' and (omni.usd.get_context().get_stage() != lesson.stage or not timeline.is_playing()):
-                lesson.status, lesson.detail = 'Cancelled', '用户暂停/停止或切换场景'
-            if lesson.status == 'Running' and time.monotonic()-started > WALL_TIMEOUT_SECONDS:
-                lesson.status, lesson.detail = 'TimedOut', f'墙钟时间超过{WALL_TIMEOUT_SECONDS}秒'
+            if controller.status == 'Running' and (omni.usd.get_context().get_stage() != controller.stage or not timeline.is_playing()):
+                controller.status, controller.detail = 'Cancelled', '用户暂停/停止或切换场景'
+            if controller.status == 'Running' and time.monotonic()-started > WALL_TIMEOUT_SECONDS:
+                controller.status, controller.detail = 'TimedOut', f'墙钟时间超过{WALL_TIMEOUT_SECONDS}秒'
     finally:
         subscription = None
-        if omni.usd.get_context().get_stage() == lesson.stage and timeline.is_playing():
+        if omni.usd.get_context().get_stage() == controller.stage and timeline.is_playing():
             timeline.pause()
-        lesson.report()
+        controller.report()
 
 
 def start(bottle_position_world_m=None, place_xy_world_m=None,
@@ -784,11 +789,11 @@ def start(bottle_position_world_m=None, place_xy_world_m=None,
           physics_prepared=False):
     bottle_position_world_m = validate_bottle_position(bottle_position_world_m)
     place_xy_world_m = validate_place_position(place_xy_world_m)
-    for key in (TASK_KEY, '_isaac_lesson03_gripper_task', '_isaac_lesson04_task',
-                '_isaac_lesson05_task', '_isaac_lesson06_task', '_isaac_lesson07_task'):
+    for key in (TASK_KEY, '_isaac_gripper_motion_task', '_isaac_hover_task',
+                '_isaac_cube_pick_task', '_isaac_cube_pick_place_task', '_isaac_repeat_pick_place_task'):
         previous = getattr(builtins, key, None)
         if previous is not None and not previous.done():
-            print('[第9课] 前一任务尚未结束，请先暂停并等待')
+            print('[瓶子抓放] 前一任务尚未结束，请先暂停并等待')
             return
     save_result({'status': 'Running', 'phase': 'Initialize'})
     task = asyncio.ensure_future(demo(bottle_position_world_m=bottle_position_world_m,

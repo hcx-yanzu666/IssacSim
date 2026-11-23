@@ -66,7 +66,7 @@ WALL_TIMEOUT_S = 180
 HOLD_SECONDS = 1.0
 MAX_SLIP_M = 0.015
 
-lesson04 = None
+motion_module = None
 
 
 def _inertia_cylinder(mass, radius, height):
@@ -188,7 +188,7 @@ def _temporary_physics_setup(stage):
 
 
 def _table_top(stage):
-    table = lesson04["ExistingCuboid"](stage, TABLE_PATH)
+    table = motion_module["ExistingCuboid"](stage, TABLE_PATH)
     return float(table.center[2] + table.size[2] / 2.0)
 
 
@@ -213,9 +213,9 @@ def _collision_section_center(stage, z_world):
 
 class WaterBottleGrasp:
     def __init__(self, stage):
-        global lesson04
-        if lesson04 is None:
-            lesson04 = __import__("runpy").run_path(str(PROJECT_ROOT / 'src/bottle_sim/motion.py'))
+        global motion_module
+        if motion_module is None:
+            motion_module = __import__("runpy").run_path(str(PROJECT_ROOT / 'src/bottle_sim/motion.py'))
 
         body_xf = stage.GetPrimAtPath(BODY_PATH)
         # Use the scene world transform; the body is nested under the imported asset.
@@ -235,7 +235,7 @@ class WaterBottleGrasp:
         hand_rotation = np.array([[0.0, 0.0, 1.0],
                                   [0.0, 1.0, 0.0],
                                   [-1.0, 0.0, 0.0]])
-        self.base = lesson04["HoverLesson"](
+        self.base = motion_module["HoverController"](
             object_path=BODY_PATH,
             target_offset=pregrasp_tcp - body_position,
             hand_rotation=hand_rotation,
@@ -347,7 +347,7 @@ class WaterBottleGrasp:
     def _reached(self, tcp, rotation, goal, dt):
         good = (np.linalg.norm(self.command_tcp - goal) < 1e-4
                 and np.linalg.norm(tcp - goal) < 0.006
-                and lesson04["angle_error"](rotation, self.hand_rotation) < np.deg2rad(3.0))
+                and motion_module["angle_error"](rotation, self.hand_rotation) < np.deg2rad(3.0))
         self.stable_seconds = self.stable_seconds + dt if good else 0.0
         return self.stable_seconds >= 0.25
 
@@ -547,30 +547,30 @@ async def run_test():
     await omni.kit.app.get_app().next_update_async()
     stage = omni.usd.get_context().get_stage()
     restore_settings = None
-    lesson = None
+    controller = None
     subscription = None
     started = time.monotonic()
     result = {"status": "Failed", "phase": "Initialize", "detail": "抓取控制初始化失败"}
     try:
         restore_settings = _temporary_physics_setup(stage)
         await omni.kit.app.get_app().next_update_async()
-        lesson = WaterBottleGrasp(stage)
-        subscription = omni.physx.get_physx_interface().subscribe_physics_step_events(lesson.tick)
+        controller = WaterBottleGrasp(stage)
+        subscription = omni.physx.get_physx_interface().subscribe_physics_step_events(controller.tick)
         timeline.play()
-        while lesson.status == "Running":
+        while controller.status == "Running":
             await omni.kit.app.get_app().next_update_async()
             if time.monotonic() - started > WALL_TIMEOUT_S:
-                lesson.status, lesson.detail = "TimedOut", "墙钟超时"
+                controller.status, controller.detail = "TimedOut", "墙钟超时"
                 break
     finally:
         subscription = None
         if timeline.is_playing():
             timeline.pause()
-        if lesson is not None:
+        if controller is not None:
             try:
-                result = lesson.report()
+                result = controller.report()
             except Exception as exc:
-                result.update({"phase": lesson.phase, "detail": f"结果读取失败: {exc}"})
+                result.update({"phase": controller.phase, "detail": f"结果读取失败: {exc}"})
         timeline.stop()
         await omni.kit.app.get_app().next_update_async()
         if restore_settings is not None:

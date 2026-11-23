@@ -38,7 +38,7 @@ def prune_success_debug_files(run_dir):
 
 
 def start(place_xy_world_m=None, device='cpu', weights=None):
-    for key in (TASK_KEY, '_isaac_lesson09_task'):
+    for key in (TASK_KEY, '_isaac_bottle_pick_task'):
         previous = getattr(builtins, key, None)
         if previous is not None and not previous.done():
             raise RuntimeError('A pick task is already running')

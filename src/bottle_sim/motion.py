@@ -1,8 +1,8 @@
-"""第4课：Lula 验证 IK，RMPflow 生成运动，到方块上方悬停。
+"""悬停控制：Lula 验证 IK，RMPflow 生成运动，到方块上方悬停。
 
 入口：Isaac Sim 5.1 Script Editor，runpy.run_path(..., run_name='__main__')。
 不用自行求解 IK，不移动方块，不保存场景。要求暂停且无其他控制器运行。
-先读 HoverLesson.__init__ 中的 ①②③，再读 tick 中的 ④。
+初始化负责机器人、运动学和目标配置；tick() 更新运动与验收状态。
 """
 
 from pathlib import Path as _ProjectPath
@@ -31,13 +31,13 @@ from isaacsim.robot_motion.motion_generation import (
     RmpFlow, ArticulationMotionPolicy, interface_config_loader,
 )
 
-# 【小实验】默认抓取中心位于方块中心上方15cm；跑通后改成0.20。
+# 默认 TCP 悬停位置位于方块中心上方 15 cm。
 HOVER_HEIGHT_M = 0.15
 POSITION_TOLERANCE_M = 0.005
 ORIENTATION_TOLERANCE_RAD = np.deg2rad(3.0)
 TIMEOUT_SECONDS = 20.0
-TASK_KEY = '_isaac_lesson04_task'
-RESULT_KEY = '_isaac_lesson04_result'
+TASK_KEY = '_isaac_hover_task'
+RESULT_KEY = '_isaac_hover_result'
 
 
 def angle_error(a, b):
@@ -71,21 +71,21 @@ class ExistingCuboid:
         return self.center.copy(), np.array([1., 0., 0., 0.])
 
 
-class HoverLesson:
+class HoverController:
     def __init__(self, hover_height=HOVER_HEIGHT_M, object_path='/World/PracticeCube',
                  target_offset=None, hand_rotation=None):
         if not np.isfinite(hover_height) or not 0.10 <= hover_height <= 0.30:
-            raise ValueError('本课悬停高度限定在0.10～0.30m；先不做下降抓取。')
-        lesson02 = runpy.run_path(str(PROJECT_ROOT / 'src/bottle_sim/robot.py'))
+            raise ValueError('悬停高度必须在0.10～0.30m范围内。')
+        robot_module = runpy.run_path(str(PROJECT_ROOT / 'src/bottle_sim/robot.py'))
         # Isaac Sim 6.1 requires one playback frame before its deprecated
         # SingleArticulation wrapper exposes valid link metadata.
-        self.robot, _ = lesson02['initialize_robot'](allow_playing=True)
+        self.robot, _ = robot_module['initialize_robot'](allow_playing=True)
         self.stage = omni.usd.get_context().get_stage()
         if abs(UsdGeom.GetStageMetersPerUnit(self.stage) - 1.0) > 1e-6:
-            raise ValueError('本课要求场景单位为米。')
+            raise ValueError('运动控制要求场景单位为米。')
         self.controller = self.robot.get_articulation_controller()
         self.hand = SingleRigidPrim('/World/Franka/panda_hand', reset_xform_properties=False)
-        # 默认保持原方块课程；瓶子课程可指定已有刚体路径，复用运动学初始化。
+        # 默认使用方块刚体；瓶子任务通过指定已有刚体路径复用运动学初始化。
         self.cube = SingleRigidPrim(object_path, reset_xform_properties=False)
         self.hand.initialize()
         self.cube.initialize()
@@ -148,9 +148,9 @@ class HoverLesson:
         self.detail = ''
         self.min_tcp_z = float('inf')
         self.max_cube_displacement = 0.0
-        print(f'[第4课] TCP目标(m)={np.round(self.target_tcp, 4)}')
-        print(f'[第4课] 模型末端→TCP偏移(m)={np.round(self.tcp_in_gripper, 6)}')
-        print(f'[第4课] IK成功，FK验证误差={self.ik_error * 1000:.3f}mm；准备连续运动。')
+        print(f'[悬停控制] TCP目标(m)={np.round(self.target_tcp, 4)}')
+        print(f'[悬停控制] 模型末端→TCP偏移(m)={np.round(self.tcp_in_gripper, 6)}')
+        print(f'[悬停控制] IK成功，FK验证误差={self.ik_error * 1000:.3f}mm；准备连续运动。')
 
     def actual_pose(self):
         # 通过实际物理手掌位姿算TCP，避免只用同一求解器自我验证。
@@ -174,7 +174,7 @@ class HoverLesson:
             self.min_tcp_z = min(self.min_tcp_z, float(tcp[2]))
             cube_p, _ = self.cube.get_world_pose()
             self.max_cube_displacement = max(self.max_cube_displacement, float(np.linalg.norm(cube_p-self.cube_start)))
-            # 仅为本课保守中止条件，不是全机械臂碰撞检测。
+            # 仅为悬停控制的保守中止条件，不是全机械臂碰撞检测。
             if tcp[2] < self.table.center[2] + self.table.size[2] / 2 + 0.06:
                 raise RuntimeError('TCP过于接近桌面，停止悬停练习')
             if self.max_cube_displacement > 0.01:
@@ -204,7 +204,7 @@ class HoverLesson:
             p, r = self.actual_pose()
             result.update(actual_tcp_m=p.tolist(), position_error_m=float(np.linalg.norm(p-self.target_tcp)),
                           orientation_error_degrees=float(np.rad2deg(angle_error(r,self.target_r))))
-        print('[第4课] '+json.dumps(result, ensure_ascii=False))
+        print('[悬停控制] '+json.dumps(result, ensure_ascii=False))
         setattr(builtins, RESULT_KEY, result)
         return result
 
@@ -213,33 +213,33 @@ async def demo():
     timeline = omni.timeline.get_timeline_interface()
     if timeline.is_playing():
         raise RuntimeError('请先暂停现有任务。')
-    lesson = HoverLesson(hover_height=HOVER_HEIGHT_M)
+    controller = HoverController(hover_height=HOVER_HEIGHT_M)
     # PhysX步回调才是真正的控制节拍；异步循环只监视状态并让UI继续更新。
-    subscription = omni.physx.get_physx_interface().subscribe_physics_step_events(lesson.tick)
+    subscription = omni.physx.get_physx_interface().subscribe_physics_step_events(controller.tick)
     try:
         timeline.play()
-        while lesson.status == 'Running':
+        while controller.status == 'Running':
             await omni.kit.app.get_app().next_update_async()
-            if omni.usd.get_context().get_stage() != lesson.stage or not timeline.is_playing():
-                lesson.status, lesson.detail = 'Cancelled', '用户暂停/停止或切换场景'
+            if omni.usd.get_context().get_stage() != controller.stage or not timeline.is_playing():
+                controller.status, controller.detail = 'Cancelled', '用户暂停/停止或切换场景'
                 break
     finally:
         subscription = None  # 释放回调，避免重复运行后多个控制器同时写关节
-        if omni.usd.get_context().get_stage() == lesson.stage and timeline.is_playing():
+        if omni.usd.get_context().get_stage() == controller.stage and timeline.is_playing():
             timeline.pause()
-        lesson.report()
+        controller.report()
 
 
 def start():
-    bottle_task = getattr(builtins, '_isaac_lesson09_task', None)
+    bottle_task = getattr(builtins, '_isaac_bottle_pick_task', None)
     if bottle_task is not None and not bottle_task.done():
-        print('[第4课] 瓶子任务正在运行，请先暂停并等待结束。')
+        print('[悬停控制] 瓶子任务正在运行，请先暂停并等待结束。')
         return
     old = getattr(builtins, TASK_KEY, None)
-    previous_gripper = getattr(builtins, '_isaac_lesson03_gripper_task', None)
-    batch_task = getattr(builtins, '_isaac_lesson07_task', None)
+    previous_gripper = getattr(builtins, '_isaac_gripper_motion_task', None)
+    batch_task = getattr(builtins, '_isaac_repeat_pick_place_task', None)
     if any(task is not None and not task.done() for task in (old, previous_gripper, batch_task)):
-        print('[第4课] 前一课任务仍在运行，请先暂停并等它结束。')
+        print('[悬停控制] 其他运动任务仍在运行，请先暂停并等它结束。')
         return
     task = asyncio.ensure_future(demo())
     setattr(builtins, TASK_KEY, task)
@@ -247,7 +247,7 @@ def start():
         if not t.cancelled() and t.exception() is not None:
             result = {'status':'Failed','detail':str(t.exception())}
             setattr(builtins, RESULT_KEY, result)
-            print('[第4课] '+str(result))
+            print('[悬停控制] '+str(result))
     task.add_done_callback(finished)
     return task
 

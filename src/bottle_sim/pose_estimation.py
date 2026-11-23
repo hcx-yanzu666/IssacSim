@@ -93,16 +93,16 @@ def fit_translation_icp(observed_world, model_body, body_rotation, camera_forwar
 
 
 def precheck_grasp_ik(body_translation):
-    """Check the lesson's approach/grasp TCP poses without commanding motion."""
+    """Check the controller's approach/grasp TCP poses without commanding motion."""
     import omni.usd
     from pxr import UsdGeom
     from isaacsim.core.utils.rotations import rot_matrix_to_quat
     from isaacsim.robot_motion.motion_generation import (
         ArticulationKinematicsSolver, LulaKinematicsSolver, interface_config_loader,
     )
-    lesson04 = runpy.run_path(str(PROJECT_ROOT / 'src/bottle_sim/motion.py'))
-    lesson02 = runpy.run_path(str(PROJECT_ROOT / 'src/bottle_sim/robot.py'))
-    robot, _ = lesson02["initialize_robot"]()
+    motion_module = runpy.run_path(str(PROJECT_ROOT / 'src/bottle_sim/motion.py'))
+    robot_module = runpy.run_path(str(PROJECT_ROOT / 'src/bottle_sim/robot.py'))
+    robot, _ = robot_module["initialize_robot"]()
 
     config = interface_config_loader.load_supported_motion_policy_config("Franka", "RMPflow")
     frame = config["end_effector_frame_name"]
@@ -124,14 +124,14 @@ def precheck_grasp_ik(body_translation):
         hand_position + hand_rotation_fk @ tcp_local - gripper_position
     )
 
-    # Match the existing lesson's fixed side-approach grasp orientation.
+    # Match the existing controller's fixed side-approach grasp orientation.
     pick_config = runpy.run_path(str(PROJECT_ROOT / 'src/bottle_sim/pick_task.py'))
     yaw = np.deg2rad(pick_config['APPROACH_YAW_DEGREES'])
     c, s = np.cos(yaw), np.sin(yaw)
     desired_hand_rotation = np.array([[0., -s, c], [0., c, s], [-1., 0., 0.]])
     target_rotation = desired_hand_rotation @ hand_to_gripper_rotation
     target_quaternion = rot_matrix_to_quat(target_rotation)
-    table = lesson04["ExistingCuboid"](stage, "/World/DeskTop")
+    table = motion_module["ExistingCuboid"](stage, "/World/DeskTop")
     table_z = float(table.center[2] + table.size[2] / 2.)
     grasp_tcp = np.asarray(body_translation, dtype=float).copy()
     grasp_tcp[0] += pick_config['GRASP_X_OFFSET_M']

@@ -1,0 +1,23 @@
+{
+  "phase_timeout_s": 60.0,
+  "task_timeout_s": 240.0,
+  "wall_timeout_s": 900.0,
+  "max_motion_tilt_degrees": 35.0,
+  "max_transport_slip_m": 0.05,
+  "grip_close_timeout_s": 6.0,
+  "grip_contact_position_tolerance_m": 0.008,
+  "retreat_position_tolerance_m": 0.025,
+  "retreat_orientation_tolerance_degrees": 10.0,
+  "lower_bottom_clearance_m": 0.008,
+  "lower_support_xy_error_m": 0.04,
+  "lower_height_error_m": 0.02,
+  "lower_tilt_degrees": 25.0,
+  "placement_xy_error_m": 0.05,
+  "placement_height_error_m": 0.02,
+  "placement_bottom_clearance_m": 0.01,
+  "placement_tilt_degrees": 20.0,
+  "placement_linear_speed_m_s": 0.04,
+  "placement_angular_speed_rad_s": 0.4,
+  "settle_stable_s": 0.5,
+  "settle_timeout_s": 10.0
+}

@@ -89,13 +89,14 @@ def load_runs(run_root, output_dir, excluded):
 
 
 def render_html(runs, ignored, run_root):
+    acceptance = _read_json(ROOT / "configs/task_acceptance.json") or {}
     payload = json.dumps({
         "runs": runs,
         "ignored_run_ids": ignored,
         "source": str(run_root),
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-        "placement_limit_mm": 20,
-        "slip_limit_mm": 25,
+        "placement_limit_mm": acceptance.get("placement_xy_error_m", 0.020) * 1000,
+        "slip_limit_mm": acceptance.get("max_transport_slip_m", 0.025) * 1000,
     }, ensure_ascii=False, separators=(",", ":"))
     payload = (payload.replace("&", "\\u0026").replace("<", "\\u003c")
               .replace(">", "\\u003e").replace("\u2028", "\\u2028")

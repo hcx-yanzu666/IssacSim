@@ -2,7 +2,7 @@
 
 Run from Isaac Sim Script Editor while the simulation is stopped or paused.
 The pose estimator uses the known bottle mesh and a fixed orientation prior;
-it estimates translation from RGB-D and checks IK before starting lesson 09.
+it estimates translation from RGB-D and checks IK before starting the bottle pick-and-place controller.
 """
 
 from pathlib import Path as _ProjectPath
@@ -316,7 +316,7 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
     if place_xy_world_m is not None:
         print("[视觉抓取] 指定放置位置 world XY：" + json.dumps(place_xy_world_m))
     await task
-    result = dict(getattr(builtins, "_isaac_lesson09_result", {}))
+    result = dict(getattr(builtins, "_isaac_bottle_pick_result", {}))
     perception = {
         'capture_id': capture_id,
         'mask_source': mask_source,

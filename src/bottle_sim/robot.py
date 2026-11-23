@@ -1,6 +1,6 @@
-"""第 2 课：读取实际关节状态。运行于 Isaac Sim 5.1 Script Editor / MCP。
+"""关节状态：读取实际关节状态。运行于 Isaac Sim 5.1 Script Editor / MCP。
 
-先运行 → 理解三个 API → 修改 WATCH_JOINT → 预测并观察输出。
+通过 WATCH_JOINT 选择要检查的关节。
 时间线需停止或暂停。首次物理初始化会执行预热步，并非纯 USD 只读。
 不持续播放、不发送运动目标、不保存场景。
 """
@@ -23,7 +23,7 @@ from pxr import Usd, UsdPhysics
 
 ROBOT_PATH = "/World/Franka"
 
-# 【你的实验】先观察 panda_joint2，然后改成 panda_finger_joint1。
+# 待检查的关节名称；可指定机械臂关节或夹爪关节。
 # 运行前预测：单位会怎么变？这个数值代表什么？
 WATCH_JOINT = "panda_finger_joint1"
 
@@ -31,7 +31,7 @@ WATCH_JOINT = "panda_finger_joint1"
 def initialize_robot(allow_playing=False):
     """找到已有机械臂，为它建立物理运行时接口。"""
     if omni.timeline.get_timeline_interface().is_playing() and not allow_playing:
-        raise RuntimeError("请先 Pause，再运行本课，避免干扰正在执行的任务。")
+        raise RuntimeError("请先 Pause，再运行关节检查，避免干扰正在执行的任务。")
     stage = omni.usd.get_context().get_stage()
     if stage is None:
         raise RuntimeError("请先打开机械臂练习场景。")
@@ -51,7 +51,7 @@ def initialize_robot(allow_playing=False):
     # API 2：包装已有机械臂，不是创建另一台机器人。
     # 不指定 position，且保留 USD 原有变换操作结构。
     robot = SingleArticulation(
-        prim_path=ROBOT_PATH, name="lesson_franka", reset_xform_properties=False
+        prim_path=ROBOT_PATH, name="franka_robot", reset_xform_properties=False
     )
     robot.initialize()
     if not robot.handles_initialized:
@@ -89,7 +89,7 @@ def inspect(watch_joint=WATCH_JOINT):
     indices = {name: index for index, name in enumerate(names)}
     kinds, mimic = read_metadata(prim)
 
-    print("\n========== 第 2 课：实际关节状态 ==========")
+    print("\n========== 关节状态：实际关节状态 ==========")
     print(f"运行时 DOF 数量：{len(names)}（以实际输出为准）")
     for index, name in enumerate(names):
         unit = {"rotation": "rad", "translation": "m"}.get(kinds.get(name), "未知")
@@ -112,11 +112,11 @@ def inspect(watch_joint=WATCH_JOINT):
         print(f"  {name}: {schema}, 引用={refs}")
     if not mimic:
         print("  未发现 mimic schema；不能仅凭这一结果判断两指一定独立。")
-    print("联动配置不等于已验证动态开合，下一课实测。本课没有下发运动目标。")
+    print("联动配置不等于动态开合验证；可用夹爪开合脚本检查。本脚本没有下发运动目标。")
     # 只返回数值快照，不长期保存物理句柄；Stop/切换场景后应重新初始化。
     return {"names": names, "positions": [float(v) for v in positions],
             "watch_joint": watch_joint, "watch_index": index}
 
 
 if __name__ == "__main__":
-    lesson_result = inspect()
+    inspection_result = inspect()

@@ -30,7 +30,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 
 
-ADAPTER_KEY = '_isaac_lesson10_ros_adapter'
+ADAPTER_KEY = '_isaac_ros2_pick_adapter'
 VISUAL_PICK_SCRIPT = PROJECT_ROOT / 'src/bottle_sim/visual_pick.py'
 
 
