@@ -7,7 +7,7 @@
 ```python
 import runpy
 runpy.run_path(
-    r"D:\qtproject\IssacSim\apps\run_pick.py",
+    r"D:\qtproject\IssacSim Pj\apps\run_pick.py",
     run_name="__main__",
 )
 ```
@@ -18,11 +18,11 @@ runpy.run_path(
 
 ```python
 import runpy
-entry = runpy.run_path(r"D:\qtproject\IssacSim\apps\run_pick.py")
+entry = runpy.run_path(r"D:\qtproject\IssacSim Pj\apps\run_pick.py")
 task = entry["start"](place_xy_world_m=[0.18, 0.20], device="cpu")
 ```
 
-依赖项目目录 `.venv` 中的 Ultralytics、PyTorch、OpenCV；默认权重为 `outputs/yolo_train/baseline50_run2/weights/best.pt`。模型文件未纳入 Git。
+依赖项目目录 `.venv` 中的 Ultralytics、PyTorch、OpenCV；默认权重为 `outputs/yolo_train/multiview500/weights/best.pt`。模型文件未纳入 Git。
 
 ## 数据如何流动
 
@@ -48,7 +48,7 @@ task = entry["start"](place_xy_world_m=[0.18, 0.20], device="cpu")
 
 ## 保存在哪里
 
-每次输出到 `outputs/yolo_pick/<时间_编号>/`，摘要入口是 `outputs/yolo_pick_latest.json`。
+每次输出到 `outputs/yolo_pick/<时间_编号>/`，完整单轮报告为该目录中的 `result.json`。评测 HTML 扫描这些单轮报告生成汇总。
 
 | 文件 | 内容 |
 |---|---|
@@ -96,7 +96,7 @@ task = entry["start"](place_xy_world_m=[0.18, 0.20], device="cpu")
 
 ## 多视角500张模型的单轮验证（2026-11-19）
 
-新训练结果已复制到本项目 `outputs/yolo_train/multiview500/`，与原始训练输出的 best.pt SHA256 一致。本次通过 `start(weights=..., device='cpu')` 显式选择新模型，未修改默认模型。
+新训练结果已复制到本项目 `outputs/yolo_train/multiview500/`，与原始训练输出的 best.pt SHA256 一致；实时视觉抓取默认使用该模型。
 
 首次运行 `20261119_154947_9ab69417` 识别成功，但IK预检查失败：首次显示兼容处理取消连杆几何实例化，使已经由Replicator初始化的物理视图失效，随后报 `NoneType.link_names`。入口12已将兼容处理前移到Stop之后、采集之前，并等待一次Kit更新，避免在IK阶段改变实例结构。
 
@@ -120,9 +120,9 @@ task = entry["start"](place_xy_world_m=[0.18, 0.20], device="cpu")
 
 ```python
 import runpy
-entry = runpy.run_path(r"D:\qtproject\IssacSim\apps\run_pick.py")
+entry = runpy.run_path(r"D:\qtproject\IssacSim Pj\apps\run_pick.py")
 task = entry["start"](
-    weights=r"D:\qtproject\IssacSim\outputs\yolo_train\multiview500\weights\best.pt",
+    weights=r"D:\qtproject\IssacSim Pj\outputs\yolo_train\multiview500\weights\best.pt",
     device="cpu",
 )
 ```

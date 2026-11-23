@@ -42,7 +42,7 @@ async def infer_yolo_mask(data_dir, capture_id, check_cancel, weights=None, devi
     """Poll an isolated worker without blocking the Kit update loop."""
     root = PROJECT_ROOT
     python = root / '.venv' / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
-    weights = Path(weights) if weights else root / 'outputs/yolo_train/baseline50_run2/weights/best.pt'
+    weights = Path(weights) if weights else root / 'outputs/yolo_train/multiview500/weights/best.pt'
     if not python.is_file() or not weights.is_file():
         raise FileNotFoundError('YOLO .venv interpreter or trained weights missing')
     helper = runpy.run_path(str(PROJECT_ROOT / 'perception/yolo_worker.py'))
@@ -128,6 +128,13 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
     if prepare_scene_callback is not None:
         prepare_scene_callback()
         await omni.kit.app.get_app().next_update_async()
+    stage = omni.usd.get_context().get_stage()
+    pick = runpy.run_path(str(PICK_SCRIPT))
+    # Author all collision/drive changes before Replicator and the IK precheck
+    # initialize PhysX articulation views. Reapplying these changes afterward
+    # invalidates the deprecated SingleArticulation metadata in Isaac Sim 6.1.
+    pick['prepare_physics']()
+    await omni.kit.app.get_app().next_update_async()
     stage = omni.usd.get_context().get_stage()
     camera_path = "/World/Franka/panda_hand/WristCamera"
     # Capture the imported bottle014 asset.  The old mustard-bottle prim was
@@ -298,11 +305,11 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
     report_phase("ik_check", "抓取位姿可达性检查通过")
     check_cancel()
     body_position = estimate["estimated_body_translation_world_m"]
-    pick = runpy.run_path(str(PICK_SCRIPT))
     task = pick["start"](bottle_position_world_m=body_position,
                           place_xy_world_m=place_xy_world_m,
                           progress_callback=progress_callback,
-                          cancel_requested=cancel_requested)
+                          cancel_requested=cancel_requested,
+                          physics_prepared=True)
     if task is None:
         raise RuntimeError("抓取任务没有启动；检查是否有上一次控制任务仍在运行")
     print("[视觉抓取] RGB-D估计瓶子抓取位置：" + json.dumps(body_position))
@@ -310,7 +317,19 @@ async def start_visual_pick(place_xy_world_m=None, progress_callback=None,
         print("[视觉抓取] 指定放置位置 world XY：" + json.dumps(place_xy_world_m))
     await task
     result = dict(getattr(builtins, "_isaac_lesson09_result", {}))
-    result.update(capture_id=capture_id, mask_source=mask_source, capture_dir=str(data_dir))
+    perception = {
+        'capture_id': capture_id,
+        'mask_source': mask_source,
+        'camera': metadata,
+        'mask': mask_info,
+        'yolo': ({key: inference.get(key) for key in (
+            'weights_sha256', 'confidence', 'class_name', 'device',
+            'ultralytics_version', 'torch_version', 'inference_speed_ms',
+            'bbox_xyxy_px', 'mask_pixels', 'resolution',
+        )} if mask_source == 'yolo' else None),
+    }
+    result.update(capture_id=capture_id, mask_source=mask_source,
+                  capture_dir=str(data_dir), perception=perception)
     return result
 
 

@@ -8,7 +8,7 @@ Isaac Sim 内的双视图数据采集面板，使用 `omni.ui`，提供独立相
 import runpy
 
 runpy.run_path(
-    r"D:\qtproject\IssacSim\tool\dataset_studio\panel.py",
+    r"D:\qtproject\IssacSim Pj\tool\dataset_studio\panel.py",
     run_name="__main__",
 )
 ```

@@ -37,3 +37,6 @@ venv/
 /scripts/07_repeat_pick_and_place.py
 /scripts/08_import_bottle.py
 /scripts/08_repair_bottle_transform.py
+
+# Local evaluation exclusions (optional)
+/configs/evaluation_exclusions.json

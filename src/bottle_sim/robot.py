@@ -28,9 +28,9 @@ ROBOT_PATH = "/World/Franka"
 WATCH_JOINT = "panda_finger_joint1"
 
 
-def initialize_robot():
+def initialize_robot(allow_playing=False):
     """找到已有机械臂，为它建立物理运行时接口。"""
-    if omni.timeline.get_timeline_interface().is_playing():
+    if omni.timeline.get_timeline_interface().is_playing() and not allow_playing:
         raise RuntimeError("请先 Pause，再运行本课，避免干扰正在执行的任务。")
     stage = omni.usd.get_context().get_stage()
     if stage is None:
@@ -118,6 +118,5 @@ def inspect(watch_joint=WATCH_JOINT):
             "watch_joint": watch_joint, "watch_index": index}
 
 
-# 你的任务是改一个参数、预测、运行、解释，不用一次手写整套控制器。
 if __name__ == "__main__":
     lesson_result = inspect()

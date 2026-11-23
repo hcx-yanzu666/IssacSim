@@ -77,7 +77,9 @@ class HoverLesson:
         if not np.isfinite(hover_height) or not 0.10 <= hover_height <= 0.30:
             raise ValueError('本课悬停高度限定在0.10～0.30m；先不做下降抓取。')
         lesson02 = runpy.run_path(str(PROJECT_ROOT / 'src/bottle_sim/robot.py'))
-        self.robot, _ = lesson02['initialize_robot']()
+        # Isaac Sim 6.1 requires one playback frame before its deprecated
+        # SingleArticulation wrapper exposes valid link metadata.
+        self.robot, _ = lesson02['initialize_robot'](allow_playing=True)
         self.stage = omni.usd.get_context().get_stage()
         if abs(UsdGeom.GetStageMetersPerUnit(self.stage) - 1.0) > 1e-6:
             raise ValueError('本课要求场景单位为米。')

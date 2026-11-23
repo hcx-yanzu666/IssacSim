@@ -68,7 +68,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--capture', type=Path, default=ROOT / 'outputs/wrist_rgbd_01')
     parser.add_argument('--template', type=Path, default=ROOT / 'outputs/perception_templates/bottle014_body.npz')
-    parser.add_argument('--weights', type=Path, default=ROOT / 'outputs/yolo_train/baseline50_run2/weights/best.pt')
+    parser.add_argument('--weights', type=Path, default=ROOT / 'outputs/yolo_train/multiview500/weights/best.pt')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--device', default='0')
     parser.add_argument('--conf', type=float, default=0.25)

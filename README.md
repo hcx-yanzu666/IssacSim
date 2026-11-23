@@ -33,7 +33,7 @@
 from pathlib import Path
 import runpy
 
-PROJECT = Path(r"D:\qtproject\IssacSim")
+PROJECT = Path(r"D:\qtproject\IssacSim Pj")
 entry = runpy.run_path(str(PROJECT / "apps/run_pick.py"))
 task = entry["start"](
     weights=str(PROJECT / "outputs/yolo_train/multiview500/weights/best.pt"),
@@ -42,7 +42,7 @@ task = entry["start"](
 )
 ```
 
-脚本自动复位、采集当前图像、调用 YOLO、定位并执行抓放；任务结束后暂停。每轮记录位于 `outputs/yolo_pick/`，最新摘要为 `outputs/yolo_pick_latest.json`。上例显式选择 multiview500 模型；模型权重需本地准备。`omni.*`、PhysX、Lula 和 Replicator 来自 Isaac 环境，不能直接用普通系统 Python 启动这些编辑器脚本。
+脚本自动复位、采集当前图像、调用 YOLO、定位并执行抓放；任务结束后暂停。成功轮次只保留结果 JSON、RGB、YOLO Mask 和位姿估计；失败轮次保留中间文件用于排查。运行会在 `outputs/yolo_pick/` 下创建单轮目录，并默认使用 multiview500 权重；模型权重需本地准备。`omni.*`、PhysX、Lula 和 Replicator 来自 Isaac 环境，不能直接用普通系统 Python 启动这些编辑器脚本。
 
 | 日常入口 | 用途 | 运行环境 |
 | --- | --- | --- |
@@ -68,6 +68,10 @@ task = entry["start"](
 
 保留了 [原始示例报告](examples/reports)；视觉单轮成功与固定坐标 10 轮是不同实验。批量图像、HDF5、模型权重、缓存和 Python 虚拟环境由本地生成。
 
+每轮视觉抓取结束后自动刷新离线报告 `outputs/evaluation_report.html`，展示成功率、误差折线、失败阶段和单轮视觉证据；也可运行 `python tools/build_evaluation_report.py` 手动重建。支持成功/失败筛选，统计口径见 [任务评测报告](docs/evaluation_report.md)。
+
+`outputs/` 的目录用途与归档位置见 [输出目录说明](docs/outputs_layout.md)。
+
 当前总质量约 560 g、摩擦和驱动参数为仿真假设；加长夹指与增大的开口为自定义仿真夹具。YOLO 接入操作见 [实时视觉抓放](docs/yolo_live_pick.md)，原始 Mask 对照见 [离线定位验证](docs/yolo_offline_pose.md)。未接入真实相机或真实机械臂，不将这些结果表述为 Sim2Real 部署完成。
 
 ## ROS2 任务输入
@@ -91,6 +95,6 @@ rosbag2 记录/回放的是 ROS 消息，当前没有将关节状态回放驱动
 
 ## 数据与依赖
 
-通过 `apps/collect_dataset.py` 或 Dataset Studio 面板采集数据。`configs/dataset_randomization.json` 配置种子、数量、瓶子偏移、灯光方位角/仰角和强度，以及独立采集相机的方位角/俯视角/距离。左侧显示采集相机，右侧显示固定场景视角，原抓取手眼相机保持独立。输出 `images/`、`labels/`、`masks/`、`depth/`、`metadata/`、`samples.jsonl`、`data.yaml` 和可自动播放的 `gallery.html`。采集后不需要机械臂执行动作。操作与录屏方式见 [域随机化采集面板](docs/dataset_studio.md)。
+通过 `apps/collect_dataset.py` 和 `configs/dataset_randomization.json` 或 Dataset Studio 面板配置种子、数量、瓶子偏移、灯光方位角/仰角和强度，以及独立采集相机的方位角/俯视角/距离。左侧显示采集相机，右侧显示固定场景视角，原抓取手眼相机保持独立。输出 `images/`、`labels/`、`masks/`、`depth/`、`metadata/`、`samples.jsonl`、`data.yaml` 和可自动播放的 `gallery.html`。采集后不需要机械臂执行动作。操作与录屏方式见 [域随机化采集面板](docs/dataset_studio.md)。
 
 视觉与采集使用 NumPy、Pillow、OpenCV；单轮随机化报告额外使用 h5py。请在与 Isaac 配套的 Python 环境中检查依赖。YOLO 训练使用独立环境，当前仓库不附带训练权重。

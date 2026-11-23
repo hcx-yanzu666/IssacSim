@@ -8,13 +8,13 @@
 
 ## 运行
 
-在 `D:\qtproject\IssacSim` 的 PowerShell 中：
+在 `D:\qtproject\IssacSim Pj` 的 PowerShell 中：
 
 ```powershell
 .\.venv\Scripts\python.exe perception\compare_pose.py
 ```
 
-默认读取 `outputs/wrist_rgbd_01` 和 `outputs/yolo_train/baseline50_run2/weights/best.pt`。可用 `--capture`、`--weights`、`--template` 指定其他输入。每次创建独立的输出目录，不覆盖原图、Mask 或历史定位报告。
+默认读取 `outputs/wrist_rgbd_01` 和 `outputs/yolo_train/multiview500/weights/best.pt`。可用 `--capture`、`--weights`、`--template` 指定其他输入。每次创建独立的输出目录，不覆盖原图、Mask 或历史定位报告。
 
 首次或更换资产后，在 Isaac Script Editor 导出瓶身局部坐标系下的模板顶点：
 
@@ -23,7 +23,7 @@ import runpy
 from pathlib import Path
 import omni.usd
 
-root = Path(r"D:\qtproject\IssacSim")
+root = Path(r"D:\qtproject\IssacSim Pj")
 module = runpy.run_path(str(root / "perception/compare_pose.py"))
 module["export_template"](
     omni.usd.get_context().get_stage(),

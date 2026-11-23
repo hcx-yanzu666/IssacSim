@@ -10,6 +10,7 @@
 | `src/bottle_sim/` | 机器人初始化、运动学、抓放状态机、视觉定位与采集模块 |
 | `perception/` | 外部 YOLO 推理、模型验证、定位对照 |
 | `tool/dataset_studio/` | 双视口数据采集面板 |
+| `tools/build_evaluation_report.py` | 生成离线 HTML 任务评测报告 |
 | `tools/diagnostics/` | 固定坐标单轮/重复抓取诊断 |
 | `scripts/` | 16 个旧功能名称的轻量兼容入口 |
 | `configs/` | 数据采集域随机化配置 |
@@ -36,7 +37,7 @@ task = entry["start"](
 )
 ```
 
-模型权重需本地准备；上例显式选择 multiview500。不传 `weights` 时仍使用原 baseline50 默认路径。每轮输出为 `outputs/yolo_pick/<运行编号>/`，最新摘要为 `outputs/yolo_pick_latest.json`。
+模型权重需本地准备；默认使用 multiview500。每轮输出为 `outputs/yolo_pick/<运行编号>/`，结束后自动刷新 `outputs/evaluation_report.html`。成功轮次保留结果 JSON、RGB、YOLO Mask 和位姿估计；失败轮次保留中间诊断文件。
 
 ## 其他入口
 

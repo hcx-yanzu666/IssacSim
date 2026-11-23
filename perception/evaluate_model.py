@@ -29,7 +29,7 @@ def main():
     root = PROJECT_ROOT
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--dataset', type=Path, default=root / 'outputs/bottle_dataset/batch_20261119_20261118_165034')
-    parser.add_argument('--weights', type=Path, default=root / 'outputs/yolo_train/baseline50_run2/weights/best.pt')
+    parser.add_argument('--weights', type=Path, default=root / 'outputs/yolo_train/multiview500/weights/best.pt')
     parser.add_argument('--device', default='0')
     args = parser.parse_args()
     out = root / 'outputs/yolo_verify' / datetime.now().strftime('%Y%m%d_%H%M%S')

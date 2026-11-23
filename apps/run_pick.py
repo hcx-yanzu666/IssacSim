@@ -22,6 +22,20 @@ import uuid
 ROOT = PROJECT_ROOT
 TASK_KEY = '_isaac_visual_bottle_pick_task'
 
+SUCCESS_DEBUG_FILES = (
+    'depth_m.npy', 'depth_noisy_m.npy', 'bottle_mask.png',
+    'camera_info.json', 'bottle_mask_info.json', 'yolo_prediction.png',
+    'yolo_request.json', 'yolo_result.json', 'yolo_worker.log',
+    'bottle_pose_estimate_overlay.png',
+)
+
+
+def prune_success_debug_files(run_dir):
+    for name in SUCCESS_DEBUG_FILES:
+        path = run_dir / name
+        if path.is_file():
+            path.unlink()
+
 
 def start(place_xy_world_m=None, device='cpu', weights=None):
     for key in (TASK_KEY, '_isaac_lesson09_task'):
@@ -39,8 +53,6 @@ def start(place_xy_world_m=None, device='cpu', weights=None):
         tmp = out / 'result.tmp'
         tmp.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding='utf-8')
         tmp.replace(out / 'result.json')
-        (ROOT / 'outputs/yolo_pick_latest.json').write_text(
-            json.dumps(record, ensure_ascii=False, indent=2), encoding='utf-8')
 
     def progress(phase, detail):
         record.update(phase=phase, detail=detail)
@@ -67,6 +79,16 @@ def start(place_xy_world_m=None, device='cpu', weights=None):
         finally:
             record['wall_seconds'] = time.monotonic() - started
             save()
+            if record.get('status') == 'Succeeded':
+                prune_success_debug_files(out)
+            try:
+                report = runpy.run_path(str(ROOT / 'tools' / 'build_evaluation_report.py'))
+                report_path, included, excluded = report['build_report']()
+                print(f'[YOLO pick] HTML report: {report_path} '
+                      f'({included} runs included, {excluded} excluded)')
+            except Exception as report_error:
+                print(f'[YOLO pick] HTML report generation failed: '
+                      f'{type(report_error).__name__}: {report_error}')
 
     save()
     task = asyncio.ensure_future(run())

@@ -7,7 +7,7 @@
 ```python
 import runpy
 runpy.run_path(
-    r"D:\qtproject\IssacSim\tool\dataset_studio\panel.py",
+    r"D:\qtproject\IssacSim Pj\tool\dataset_studio\panel.py",
     run_name="__main__",
 )
 ```
@@ -74,7 +74,7 @@ YOLO 训练只需要 RGB 与对应标签。相机内外参作为轻量元数据�
 
 ```python
 import runpy
-module = runpy.run_path(r"D:\qtproject\IssacSim\src\bottle_sim\dataset.py")
+module = runpy.run_path(r"D:\qtproject\IssacSim Pj\src\bottle_sim\dataset.py")
 task = module["start"](config={"target_samples": 50, "demo_hold_seconds": 0})
 ```
 

@@ -15,7 +15,7 @@
 在 Windows PowerShell 中执行，不要在 Isaac Script Editor 或 Ubuntu 中执行：
 
 ```powershell
-Set-Location 'D:\qtproject\IssacSim'
+Set-Location 'D:\qtproject\IssacSim Pj'
 & '.\.venv\Scripts\python.exe' -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0))"
 ```
 
