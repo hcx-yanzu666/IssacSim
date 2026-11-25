@@ -50,7 +50,7 @@ task = entry["start"](
 | `apps/collect_dataset.py` | 自动采集随机化数据集，不抓取 | Isaac Script Editor |
 | `apps/start_ros2_bridge.py` | 常驻 ROS2 接口，默认仿真 Mask | Isaac Script Editor |
 | `apps/run_randomized_trial.py` | 单轮随机化抓取，默认仿真 Mask，保存 HDF5/JSON | Isaac Script Editor |
-| `tool/dataset_studio/panel.py` | 双视口采集面板 | Isaac Script Editor |
+| `tools/dataset_studio/panel.py` | 双视口采集面板 | Isaac Script Editor |
 | `perception/evaluate_model.py` | 已有 YOLO 模型验证 | 项目 `.venv` |
 | `perception/compare_pose.py` | 保存帧的 YOLO/仿真 Mask 定位对照 | 项目 `.venv` |
 

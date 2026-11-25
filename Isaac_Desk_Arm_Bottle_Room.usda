@@ -1,0 +1,515 @@
+#usda 1.0
+(
+    customLayerData = {
+        dictionary cameraSettings = {
+            string boundCamera = "/World/Room/OverviewCamera"
+        }
+        string description = "Simple room decoration; original desk collider and task transforms preserved."
+    }
+    defaultPrim = "World"
+    metersPerUnit = 1
+    subLayers = [
+        @./Isaac_Desk_Arm_Bottle.usda@
+    ]
+    upAxis = "Z"
+)
+
+over "World"
+{
+    def Xform "Room"
+    {
+        def "Looks"
+        {
+            def Material "WarmConcrete"
+            {
+                token outputs:surface.connect = </World/Room/Looks/WarmConcrete/Surface.outputs:surface>
+
+                def Shader "Surface"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.28, 0.27, 0.24)
+                    float inputs:roughness = 0.88
+                    token outputs:surface
+                }
+            }
+
+            def Material "WarmPlaster"
+            {
+                token outputs:surface.connect = </World/Room/Looks/WarmPlaster/Surface.outputs:surface>
+
+                def Shader "Surface"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.62, 0.6, 0.54)
+                    float inputs:roughness = 0.85
+                    token outputs:surface
+                }
+            }
+
+            def Material "SagePaint"
+            {
+                token outputs:surface.connect = </World/Room/Looks/SagePaint/Surface.outputs:surface>
+
+                def Shader "Surface"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.2, 0.29, 0.27)
+                    float inputs:roughness = 0.8
+                    token outputs:surface
+                }
+            }
+
+            def Material "DarkTrim"
+            {
+                token outputs:surface.connect = </World/Room/Looks/DarkTrim/Surface.outputs:surface>
+
+                def Shader "Surface"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.065, 0.075, 0.07)
+                    float inputs:roughness = 0.6
+                    token outputs:surface
+                }
+            }
+        }
+
+        def Cube "Floor" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            rel material:binding = </World/Room/Looks/WarmConcrete>
+            double size = 1
+            float xformOp:rotateZ = 0
+            float3 xformOp:scale = (6, 6, 0.06)
+            double3 xformOp:translate = (0, 0, -0.035)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateZ", "xformOp:scale"]
+        }
+
+        def Cube "BackWall" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            rel material:binding = </World/Room/Looks/WarmPlaster>
+            double size = 1
+            float xformOp:rotateZ = 0
+            float3 xformOp:scale = (6, 0.12, 3.1)
+            double3 xformOp:translate = (0, 2.55, 1.55)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateZ", "xformOp:scale"]
+        }
+
+        def Cube "LeftWall" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            rel material:binding = </World/Room/Looks/SagePaint>
+            double size = 1
+            float xformOp:rotateZ = 0
+            float3 xformOp:scale = (0.12, 5.1, 3.1)
+            double3 xformOp:translate = (-2.55, 0, 1.55)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateZ", "xformOp:scale"]
+        }
+
+        def Cube "BackSkirting" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            rel material:binding = </World/Room/Looks/DarkTrim>
+            double size = 1
+            float xformOp:rotateZ = 0
+            float3 xformOp:scale = (5, 0.025, 0.12)
+            double3 xformOp:translate = (0, 2.47, 0.06)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateZ", "xformOp:scale"]
+        }
+
+        def Cube "LeftSkirting" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            rel material:binding = </World/Room/Looks/DarkTrim>
+            double size = 1
+            float xformOp:rotateZ = 0
+            float3 xformOp:scale = (0.025, 5, 0.12)
+            double3 xformOp:translate = (-2.47, 0, 0.06)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateZ", "xformOp:scale"]
+        }
+
+        def Xform "Table"
+        {
+            float xformOp:rotateZ = 0
+            float3 xformOp:scale = (0.8386774, 0.9403149, 1.0516825)
+            double3 xformOp:translate = (-9.997814049371063e-8, 0, 0.005951619814327684)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateZ", "xformOp:scale"]
+
+            def "Model" (
+                prepend references = @D:/tools/Lightwheel_OpenSource/Lightwheel_OpenSource/Locomotion/Apartment/Props/SM_table_02_0.usd@
+            )
+            {
+                over "SM_table_02_0"
+                {
+                    over "Section1" (
+                        prepend apiSchemas = ["MaterialBindingAPI"]
+                    )
+                    {
+                        rel material:binding = </World/Room/Table/Model/Looks/MI_wood_table_01>
+                    }
+                }
+            }
+        }
+
+        def Xform "BackgroundCabinet"
+        {
+            float xformOp:rotateZ = 0
+            float3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (-0.34999976171070624, 2.0889826228682535, 1.19895339012146)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateZ", "xformOp:scale"]
+
+            def "Model" (
+                prepend references = @D:/tools/Lightwheel_OpenSource/Lightwheel_OpenSource/Locomotion/KitchenRoom/Kitchen_Cabinet001/Kitchen_Cabinet001.usd@
+            )
+            {
+                over "Kitchen_Cabinet001"
+                {
+                    bool physics:rigidBodyEnabled = 0
+
+                    over "Collisions"
+                    {
+                        over "Kitchen_Cabinet001_C001_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C002_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C003_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C004_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C005_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C006_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C007_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C008_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C009_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C010_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C011_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C012_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C013_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C014_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C015_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C016_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_C017_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+                    }
+                }
+
+                over "Kitchen_Cabinet001_Door001"
+                {
+                    bool physics:rigidBodyEnabled = 0
+
+                    over "Kitchen_Cabinet001_Door001"
+                    {
+                        over "RevoluteJoint" (
+                            active = false
+                        )
+                        {
+                        }
+                    }
+
+                    over "Collisions"
+                    {
+                        over "Kitchen_Cabinet001_Door001_C001_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_Door001_C002_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+                    }
+                }
+
+                over "Kitchen_Cabinet001_Door002"
+                {
+                    bool physics:rigidBodyEnabled = 0
+
+                    over "Kitchen_Cabinet001_Door002"
+                    {
+                        over "RevoluteJoint" (
+                            active = false
+                        )
+                        {
+                        }
+                    }
+
+                    over "Collisions"
+                    {
+                        over "Kitchen_Cabinet001_Door002_C001_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_Door002_C002_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+                    }
+                }
+
+                over "Kitchen_Cabinet001_Door003"
+                {
+                    bool physics:rigidBodyEnabled = 0
+
+                    over "Kitchen_Cabinet001_Door003"
+                    {
+                        over "RevoluteJoint" (
+                            active = false
+                        )
+                        {
+                        }
+                    }
+
+                    over "Collisions"
+                    {
+                        over "Kitchen_Cabinet001_Door003_C001_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_Door003_C002_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+                    }
+                }
+
+                over "Kitchen_Cabinet001_Door004"
+                {
+                    bool physics:rigidBodyEnabled = 0
+
+                    over "Kitchen_Cabinet001_Door004"
+                    {
+                        over "RevoluteJoint" (
+                            active = false
+                        )
+                        {
+                        }
+                    }
+
+                    over "Collisions"
+                    {
+                        over "Kitchen_Cabinet001_Door004_C001_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_Door004_C002_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+                    }
+                }
+
+                over "Kitchen_Cabinet001_Door005"
+                {
+                    bool physics:rigidBodyEnabled = 0
+
+                    over "Kitchen_Cabinet001_Door005"
+                    {
+                        over "RevoluteJoint" (
+                            active = false
+                        )
+                        {
+                        }
+                    }
+
+                    over "Collisions"
+                    {
+                        over "Kitchen_Cabinet001_Door005_C001_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+
+                        over "Kitchen_Cabinet001_Door005_C002_Shape"
+                        {
+                            bool physics:collisionEnabled = 0
+                        }
+                    }
+                }
+            }
+        }
+
+        def RectLight "KeySoftbox"
+        {
+            color3f inputs:color = (1, 0.94, 0.84)
+            float inputs:height = 1.5
+            float inputs:intensity = 4500
+            float inputs:width = 2
+            float xformOp:rotateZ = 0
+            float3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0.2, -0.4, 2.7)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateZ", "xformOp:scale"]
+        }
+
+        def RectLight "RoomFill"
+        {
+            color3f inputs:color = (0.86, 0.93, 1)
+            float inputs:height = 1.3
+            float inputs:intensity = 2500
+            float inputs:width = 1.3
+            float xformOp:rotateZ = 0
+            float3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (-1.4, 1.1, 2.8)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateZ", "xformOp:scale"]
+        }
+
+        def Camera "OverviewCamera" (
+            prepend apiSchemas = ["OmniRtxCameraAutoExposureAPI_1", "OmniRtxCameraExposureAPI_1"]
+        )
+        {
+            float2 clippingRange = (0.03, 100)
+            float exposure:fStop = 5
+            float exposure:responsivity = 1.1026709
+            float exposure:time = 0.02
+            float focalLength = 28
+            float horizontalAperture = 36
+            custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -4.926712900098806)
+            matrix4d xformOp:transform = ( (0.5597206704412081, 0.8286813447163196, 1.347663300399482e-16, 0), (-0.21738394253222085, 0.14682879834701718, 0.9649795466770882, 0), (0.7996605483641136, -0.5401189988281508, 0.26232513126820456, 0), (2.4999999999999996, -3.599999999999999, 2.25, 1) )
+            uniform token[] xformOpOrder = ["xformOp:transform"]
+        }
+    }
+
+    over "DeskTop"
+    {
+        token visibility = "invisible"
+    }
+
+    over "DeskLeg_FL"
+    {
+        token visibility = "invisible"
+    }
+
+    over "DeskLeg_FR"
+    {
+        token visibility = "invisible"
+    }
+
+    over "DeskLeg_BL"
+    {
+        token visibility = "invisible"
+    }
+
+    over "DeskLeg_BR"
+    {
+        token visibility = "invisible"
+    }
+
+    over "groundPlane"
+    {
+        token visibility = "invisible"
+    }
+
+    over "AmbientLight"
+    {
+        float inputs:intensity = 700
+    }
+
+    over "DeskLight"
+    {
+        float inputs:intensity = 600
+        float inputs:radius = 0.25
+    }
+
+    over "PracticeCube"
+    {
+        vector3f physics:angularVelocity = (0.026151143, -0.04638589, -0.00009233514)
+        vector3f physics:velocity = (-0.00006157545, -0.00005171485, -0.000011484604)
+        token visibility = "invisible"
+        quatd xformOp:orient = (0.9999998211860657, 5.25893995018123e-7, -2.624543924412137e-7, -0.00048823244287632406)
+        double3 xformOp:translate = (0.17998822033405304, -0.000015584038919769228, 0.7749999761581421)
+    }
+}
+
+over "Render"
+{
+    over "OmniverseKit"
+    {
+        over "HydraTextures"
+        {
+            over "omni_kit_widget_viewport_ViewportTexture_0"
+            {
+                rel camera = </World/Room/OverviewCamera>
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+        }
+    }
+}
+
+over "Environment"
+{
+    over "defaultLight"
+    {
+        float inputs:intensity = 0
+    }
+}
+

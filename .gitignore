@@ -1,34 +1,30 @@
+# ---------- Python ----------
+.venv/
 __pycache__/
 *.py[cod]
+*.egg-info/
 
-# Generated simulation outputs and datasets
-outputs/
-*.h5
-*.hdf5
-*.npy
-*.db3
-*.mcap
-*.log
-
-# Local imported assets are not tracked until their redistribution license is confirmed
-assets/
-
-# Editor and OS files
-.vscode/
+# ---------- IDE / OS ----------
 .idea/
+.vscode/
+.DS_Store
 Thumbs.db
-Desktop.ini
+desktop.ini
 
-# Local Python environments and model weights
-.venv/
-venv/
+# ---------- 模型权重 ----------
+# 基础权重可自行下载，训练权重由本地训练生成，不入库
 *.pt
 *.onnx
 
-# Local teaching materials
-/examples/tutorials/
+# ---------- 运行输出 ----------
+# 数据集、采集批次、抓放结果与评测产物均由本地生成
+outputs/
+
+# ---------- 教学材料与本地实验配置（不入库）----------
+/docs/learning_notes.md
 /docs/lesson_history.md
-/学习拼图.md
+/examples/tutorials/
+/configs/evaluation_exclusions.json
 /scripts/01_inspect_scene.py
 /scripts/02_joint_control_todo.py
 /scripts/03_gripper_motion.py
@@ -37,6 +33,3 @@ venv/
 /scripts/07_repeat_pick_and_place.py
 /scripts/08_import_bottle.py
 /scripts/08_repair_bottle_transform.py
-
-# Local evaluation exclusions (optional)
-/configs/evaluation_exclusions.json

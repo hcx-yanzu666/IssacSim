@@ -9,7 +9,7 @@
 | `apps/` | 单次 YOLO 抓放、数据采集、ROS2 接口、单轮随机化入口 |
 | `src/bottle_sim/` | 机器人初始化、运动学、抓放状态机、视觉定位与采集模块 |
 | `perception/` | 外部 YOLO 推理、模型验证、定位对照 |
-| `tool/dataset_studio/` | 双视口数据采集面板 |
+| `tools/dataset_studio/` | 双视口数据采集面板 |
 | `tools/build_evaluation_report.py` | 生成离线 HTML 任务评测报告 |
 | `tools/diagnostics/` | 固定坐标单轮/重复抓取诊断 |
 | `scripts/` | 16 个旧功能名称的轻量兼容入口 |
@@ -46,7 +46,7 @@ task = entry["start"](
 | `apps/collect_dataset.py` | 不抓取，自动采集随机化数据集 |
 | `apps/start_ros2_bridge.py` | 常驻 ROS2 任务接口，当前默认仿真 Mask |
 | `apps/run_randomized_trial.py` | 单轮随机化抓取，当前默认仿真 Mask，保存 JSON/HDF5 |
-| `tool/dataset_studio/panel.py` | 交互配置采集参数、显示相机与场景视图 |
+| `tools/dataset_studio/panel.py` | 交互配置采集参数、显示相机与场景视图 |
 
 这些入口可用 `runpy.run_path(完整路径, run_name="__main__")` 执行。单轮随机化要求 Stop 状态。当前没有统一的多轮 YOLO 随机抓取入口；固定坐标重复诊断与随机化图片采集是不同流程。
 
@@ -64,7 +64,7 @@ apps/run_pick.py
 apps/collect_dataset.py
   └─ dataset.py                      采集、自动标注、质量筛选
        └─ randomization.py           配置、随机采样、图库生成
-tool/dataset_studio/panel.py           调用 dataset.py
+tools/dataset_studio/panel.py           调用 dataset.py
 ```
 
 修改抓放参数与阶段判断看 `pick_task.py`；修改采集与视觉流程看 `visual_pick.py`；修改坐标变换与定位看 `pose_estimation.py`；修改采集范围看 `configs/dataset_randomization.json`。
